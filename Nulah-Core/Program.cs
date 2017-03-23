@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 
-namespace Nulah_Core
+namespace NulahCore
 {
     public class Program
     {
