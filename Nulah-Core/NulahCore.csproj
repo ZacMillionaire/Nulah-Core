@@ -6,8 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="wwwroot\SASS\Nulah.scss" />
-    <Content Include="wwwroot\SASS\Partials\_reset.scss" />
+    <Folder Include="wwwroot\SASS\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore" Version="1.1.1" />
