@@ -6,17 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Remove="wwwroot/SASS\Partials\_frontpage.scss~RF120957bb.TMP" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="wwwroot\SASS\Partials\_frontpage.scss" />
-    <Content Include="wwwroot\SASS\Partials\_layout.scss" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Areas\Api\Models\" />
-    <Folder Include="Areas\Index\Models\" />
     <Folder Include="wwwroot\css\" />
   </ItemGroup>
   <ItemGroup>
