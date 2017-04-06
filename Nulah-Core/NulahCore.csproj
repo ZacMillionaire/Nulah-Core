@@ -6,7 +6,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\SASS\" />
+    <Content Remove="wwwroot/SASS\Partials\_frontpage.scss~RF120957bb.TMP" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="wwwroot\SASS\Partials\_frontpage.scss" />
+    <Content Include="wwwroot\SASS\Partials\_layout.scss" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Areas\Api\Models\" />
+    <Folder Include="Areas\Index\Models\" />
+    <Folder Include="wwwroot\css\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore" Version="1.1.1" />
@@ -16,9 +27,6 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="1.1.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer.Design" Version="1.1.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="1.1.1" />
-    <PackageReference Include="Microsoft.VisualStudio.Web.BrowserLink" Version="1.1.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="1.1.0" />
     <PackageReference Include="StackExchange.Redis" Version="1.2.1" />
   </ItemGroup>
-
 </Project>

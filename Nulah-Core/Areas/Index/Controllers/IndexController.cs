@@ -3,18 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-
-// For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+using NulahCore.Controllers;
+using StackExchange.Redis;
+using NulahCore.Controllers.Api;
 
 namespace NulahCore.Areas.Index.Controllers
 {
     [Area("Index")]
     public class IndexController : Controller
     {
+        private readonly IDatabase _redis;
+
+        public IndexController(IDatabase redis)
+        {
+            _redis = redis;
+        }
+
         [Route("~/")]
         [HttpGet]
         public IActionResult FrontPage()
         {
+            ViewData["RedisStats"] = StatusApi.GetRedisStatus(_redis);
             return View();
         }
     }
