@@ -12,7 +12,7 @@ namespace NulahCore.Controllers.Api
     {
         public static RedisStatus GetRedisStatus(IDatabase Redis)
         {
-            return JsonConvert.DeserializeObject<RedisStatus>(RedisStore.Connection.GetDatabase(1).ListGetByIndex("Nulah-Redis-Status", 0));
+            return RedisStore.Deserialise<RedisStatus>(RedisStore.Connection.GetDatabase(1).ListGetByIndex("Nulah-Redis-Status", 0)); //JsonConvert.DeserializeObject<RedisStatus>(RedisStore.Connection.GetDatabase(1).ListGetByIndex("Nulah-Redis-Status", 0));
         }
     }
 }

@@ -7,22 +7,18 @@ using NulahCore.Controllers;
 using StackExchange.Redis;
 using NulahCore.Controllers.Api;
 
-namespace NulahCore.Areas.Index.Controllers
-{
+namespace NulahCore.Areas.Index.Controllers {
     [Area("Index")]
-    public class IndexController : Controller
-    {
+    public class IndexController : Controller {
         private readonly IDatabase _redis;
 
-        public IndexController(IDatabase redis)
-        {
+        public IndexController(IDatabase redis) {
             _redis = redis;
         }
 
         [Route("~/")]
         [HttpGet]
-        public IActionResult FrontPage()
-        {
+        public IActionResult FrontPage() {
             ViewData["RedisStats"] = StatusApi.GetRedisStatus(_redis);
             return View();
         }

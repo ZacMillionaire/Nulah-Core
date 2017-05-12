@@ -1,0 +1,47 @@
+﻿@using NulahCore.Models.Article;
+@model PublicArticle
+<div class="page-container">
+    <div class="new-article-content">
+        <div class="module-column">
+            <div class="module">
+                <div class="module-content">
+                    &laquo; Back
+                </div>
+            </div>
+            <div class="module">
+                <div class="module-content">
+                    <div class="module-title">
+                        <h1>New Article</h1>
+                    </div>
+                    <div class="module-body">
+                        <div class="form">
+                            <form action="~/Article/New" method="post">
+                                <div class="form-row">
+                                    <div class="form-label">
+                                        <label for="ArticleTitle">Title</label>
+                                    </div>
+                                    <div class="form-input">
+                                        <input asp-for="@Model.Title" />
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-label">
+                                        <label for="ArticleTitle">Body</label>
+                                    </div>
+                                    <div class="form-input">
+                                        <textarea asp-for="@Model.Body"></textarea>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-button form-right">
+                                        <button class="btn" type="submit">Post</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

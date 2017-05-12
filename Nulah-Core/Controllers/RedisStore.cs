@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using NulahCore.Models;
 using StackExchange.Redis;
 using System;
@@ -7,16 +8,13 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace NulahCore.Controllers
-{
-    public class RedisStore
-    {
+namespace NulahCore.Controllers {
+    public class RedisStore {
         private static readonly Lazy<ConnectionMultiplexer> LazyConnection;
         private static readonly AppSetting _ApplicationSettings;
 
         private static Lazy<ConfigurationOptions> configOptions
-           = new Lazy<ConfigurationOptions>(() =>
-           {
+           = new Lazy<ConfigurationOptions>(() => {
                var configOptions = new ConfigurationOptions();
                configOptions.EndPoints.Add(_ApplicationSettings.Redis.EndPoint);
                configOptions.ClientName = _ApplicationSettings.Redis.ClientName;
@@ -29,8 +27,7 @@ namespace NulahCore.Controllers
                return configOptions;
            });
 
-        static RedisStore()
-        {
+        static RedisStore() {
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
@@ -46,6 +43,17 @@ namespace NulahCore.Controllers
         public static ConnectionMultiplexer Connection => LazyConnection.Value;
 
         public static IDatabase RedisCache => Connection.GetDatabase();
+
+        public static T Deserialise<T>(RedisValue RedisValue) {
+            return JsonConvert.DeserializeObject<T>(RedisValue);
+        }
+        public static T[] Deserialise<T>(RedisValue[] RedisValue) {
+            var a = RedisValue.Select(x =>
+                JsonConvert.DeserializeObject<T>(x)
+            )
+            .ToArray();
+            return a;
+        }
     }
 
 }

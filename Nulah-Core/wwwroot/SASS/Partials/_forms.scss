@@ -1,0 +1,40 @@
+﻿@import "_buttons.scss";
+
+.form {
+}
+
+.form-row {
+    &:not(:only-child):not(:last-child) {
+        margin-bottom: 1rem;
+    }
+
+    .form-label {
+        margin-bottom: 0.5rem;
+        font-size: 1.2rem;
+        color: hsl(0,0%,25%);
+    }
+
+    .form-input {
+        display: flex;
+
+        input, textarea {
+            border: 1px solid hsl(0,0%,85%);
+            flex: 1;
+            padding: 0.5rem;
+        }
+
+        input {
+            line-height: 1.4;
+            font-size: 1.5rem;
+        }
+
+        textarea {
+            min-height: 300px;
+        }
+    }
+}
+
+.form-right {
+    display: flex;
+    justify-content: flex-end;
+}

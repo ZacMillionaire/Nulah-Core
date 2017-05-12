@@ -1,0 +1,34 @@
+﻿.sidebar {
+    //width: 30%;
+    margin-right: $module-spacing;
+
+    nav {
+        &:not(:last-child):not(:only-child) {
+            margin-bottom: $module-spacing;
+        }
+
+        ul {
+            list-style: none;
+            margin: 10px;
+
+            li {
+                padding: 2.5px 0;
+
+                a {
+                    text-decoration: none;
+                    color: inherit;
+                    width: 100%;
+                    height: 100%;
+                    display: block;
+
+                    &:hover {
+                        text-decoration: underline;
+                    }
+                }
+            }
+        }
+    }
+
+    .module-column {
+    }
+}

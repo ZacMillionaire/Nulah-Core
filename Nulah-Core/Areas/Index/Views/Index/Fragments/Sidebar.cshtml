@@ -1,0 +1,38 @@
+﻿@using NulahCore.Models.User;
+@{
+    PublicUser User = ViewData["User"] as PublicUser;
+}
+
+<div class="sidebar">
+    <nav>
+        <div class="module-column">
+            <div class="module">
+                <div class="module-content">
+                    <ul>
+                        <li>
+                            <a href="~/Register">Register Account</a>
+                        </li>
+                        <li>
+                            <a href="~/Articles">Archives</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+    @if(User.IsLoggedIn) {
+        <nav>
+            <div class="module-column">
+                <div class="module">
+                    <div class="module-content">
+                        <ul>
+                            <li>
+                                <a href="~/Article/New">New Article</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    }
+</div>

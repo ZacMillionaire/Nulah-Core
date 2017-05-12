@@ -1,0 +1,5 @@
+﻿Welcome to Moar.ws!\n
+You're receiving this email because someone has attempted to register this email address, {{EmailAddress}}.\n\n
+If this was intended, visit https://moar.ws/Register/Confirm and enter in this token: {{Token}}.\n
+You have one day to confirm your address using this token before it expires.\n
+This token will expire on {{Expires}}. This might not be your local timezone, so please feel free to convert this from GMT if you really want to wait until the last possible moment to confirm.

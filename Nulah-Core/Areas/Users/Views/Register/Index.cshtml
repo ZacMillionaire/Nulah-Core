@@ -1,0 +1,6 @@
+﻿Register form
+<form action="/Register" method="post">
+    <input type="email" required name="EmailAddress"/>
+    @Html.AntiForgeryToken()
+    <button type="submit">Register</button>
+</form>
