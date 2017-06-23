@@ -3,14 +3,14 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp1.1</TargetFramework>
     <PackageTargetFallback>portable-net45+win8</PackageTargetFallback>
-    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <!--<EnableDefaultCompileItems>false</EnableDefaultCompileItems>-->
   </PropertyGroup>
 
-  <ItemGroup>
+  <!--<ItemGroup>
     <Content Include="wwwroot\Templates\NewRegistration.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
+  </ItemGroup>-->
 
   <ItemGroup>
     <PackageReference Include="Flurl.Http" Version="1.1.2" />
@@ -25,9 +25,9 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="1.1.1" />
     <PackageReference Include="StackExchange.Redis" Version="1.2.1" />
   </ItemGroup>
-  <ItemGroup>
+  <!--<ItemGroup>
     <Content Update="wwwroot/Templates\NewRegistration.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>  
+  </ItemGroup>-->  
 </Project>
