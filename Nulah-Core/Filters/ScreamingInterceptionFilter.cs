@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using NulahCore.Extensions.Logging;
 using StackExchange.Redis;
 using System;
@@ -52,8 +53,9 @@ namespace NulahCore.Filters {
                     Scheme = Context.Request.Scheme,
                     Referer = Context.Request.Headers["Referer"].Count > 0 ? Context.Request.Headers["Referer"][0] : null,
                     UserAgent = Context.Request.Headers["User-Agent"],
-                    IpAddress = Context.Features.Get<IHttpConnectionFeature>()?.RemoteIpAddress.ToString(),
-                    RequestTime = DateTime.UtcNow
+                    //IpAddress = Context.Request.Headers["X-Original-For"],
+                    RequestTime = DateTime.UtcNow,
+                    RawHeaders = JsonConvert.SerializeObject(Context.Request.Headers)
                 };
 
                 if(request.Referer != null) {
@@ -103,6 +105,7 @@ namespace NulahCore.Filters {
         /// response in ms
         /// </summary>
         public long ResponseTime { get; set; }
+        public string RawHeaders { get; set; }
     }
 
     public class Referer {

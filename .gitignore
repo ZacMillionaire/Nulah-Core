@@ -261,3 +261,4 @@ __pycache__/
 *.pyc
 Nulah-Core/ScaffoldingReadMe.txt
 /Nulah-Core/appsettings.json
+/Nulah-Core/appsettings.dev.json
