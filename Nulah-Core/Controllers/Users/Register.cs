@@ -7,15 +7,20 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using NulahCore.Areas.Users.Controllers;
+using NulahCore.Models;
 
 namespace NulahCore.Controllers.Users {
     public class Register {
-        private const string KEY_User_Pending = "Users:Pending:";
+        private readonly string KEY_User_Pending;
 
         private readonly IDatabase _redis;
+        private readonly AppSetting _settings;
 
-        public Register(IDatabase Redis) {
+        public Register(IDatabase Redis, AppSetting Settings) {
             _redis = Redis;
+            _settings = Settings;
+            KEY_User_Pending = Settings.Redis.BaseKey + "Users:Pending:";
         }
 
         public RegistrationReservation PreRegisterEmailAddress(string EmailAddress) {
@@ -40,6 +45,11 @@ namespace NulahCore.Controllers.Users {
             }
         }
 
+        /// <summary>
+        /// Checks both pending users and registered users.
+        /// </summary>
+        /// <param name="EmailHash"></param>
+        /// <returns></returns>
         private bool EmailAddressInUse(string EmailHash) {
             string redisKey = KEY_User_Pending + EmailHash;
 
@@ -66,6 +76,40 @@ namespace NulahCore.Controllers.Users {
             _redis.KeyExpire(redisKey, reservation.Expires);
 
             return reservation;
+        }
+
+        public bool ConfirmEmailAddress(ConfirmRegistrationForm formData) {
+            string EmailHash = HashEmail(formData.EmailAddress);
+            var reservation = GetReservation(EmailHash, formData.Token);
+
+            if(reservation.InvalidToken == false && reservation.EmailExists == true) {
+                return true;
+            }
+            return false;
+        }
+
+        private RegistrationReservation GetReservation(string EmailHash, string Token) {
+            string redisKey = KEY_User_Pending + EmailHash;
+
+            var pendingExists = _redis.HashExists(redisKey, "Reservation");
+            if(!pendingExists) {
+                return new RegistrationReservation {
+                    EmailExists = false
+                };
+            }
+
+            RegistrationReservation pendingRegistration = RedisStore.Deserialise<RegistrationReservation>(_redis.HashGet(redisKey, "Reservation"));
+            if(pendingRegistration.Token != Token) {
+                return new RegistrationReservation {
+                    InvalidToken = true
+                };
+            } else {
+                pendingRegistration.EmailExists = true;
+                pendingRegistration.InvalidToken = false;
+                return pendingRegistration;
+            }
+
+
         }
 
         //private RegistrationReservation RefreshRegistration(string EmailAddress) {

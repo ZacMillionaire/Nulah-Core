@@ -10,6 +10,9 @@ namespace NulahCore.Controllers.Users.Models {
         public string Email { get; set; }
         public string Token { get; set; }
         public DateTime Expires { get; set; }
+        [Newtonsoft.Json.JsonIgnore]
         public bool EmailExists { get; set; }
+        [Newtonsoft.Json.JsonIgnore]
+        public bool InvalidToken { get; set; }
     }
 }

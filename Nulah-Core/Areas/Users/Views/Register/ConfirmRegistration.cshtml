@@ -1,0 +1,7 @@
+﻿Confirm Email form
+<form action="/Register/Confirm" method="post">
+    <input type="email" required name="EmailAddress" />
+    <input type="text" required name="Token" />
+    @Html.AntiForgeryToken()
+    <button type="submit">Confirm</button>
+</form>

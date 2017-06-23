@@ -14,6 +14,7 @@ using NulahCore.Controllers;
 using StackExchange.Redis;
 using Microsoft.Extensions.FileProviders;
 using NulahCore.Filters;
+using NulahCore.Extensions.Logging;
 
 namespace NulahCore {
     public class Startup {
@@ -34,6 +35,7 @@ namespace NulahCore {
         public void ConfigureServices(IServiceCollection services) {
             _config.GetSection("ConnectionStrings").Bind(ApplicationSettings);
             ApplicationSettings.Api_Mailgun = _config["Api:Mailgun"];
+            ApplicationSettings.LogLevel = (LogLevel)Enum.Parse(typeof(LogLevel), _config["Logging:Level"]);
 
             IDatabase redis = RedisStore.RedisCache;
             services.AddScoped(_ => redis);
@@ -42,13 +44,13 @@ namespace NulahCore {
             services.AddMvc(Options => {
                 Options.RespectBrowserAcceptHeader = true;
             })
-                .AddMvcOptions(Options => {
-                    Options.Filters.Add(new ActionFilter(redis));
-                });
+            .AddMvcOptions(Options => {
+                Options.Filters.Add(new ActionFilter(redis));
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory) {
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, IDatabase Redis) {
             app.UseDefaultFiles();
             app.UseStaticFiles();
             /*
@@ -65,6 +67,7 @@ namespace NulahCore {
             app.UseStatusCodePagesWithReExecute("/Error/{0}");
             app.UseScreamingExceptions();
             loggerFactory.AddConsole();
+            loggerFactory.AddProvider(new ScreamingLoggerProvider(Redis, ApplicationSettings));
 
             if(env.IsDevelopment()) {
                 //app.UseDeveloperExceptionPage();

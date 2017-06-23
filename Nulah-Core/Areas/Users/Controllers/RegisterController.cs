@@ -20,6 +20,15 @@ namespace NulahCore.Areas.Users.Controllers {
         public string EmailAddress { get; set; }
     }
 
+    public class ConfirmRegistrationForm {
+        [Required]
+        [DataType(DataType.EmailAddress)]
+        public string EmailAddress { get; set; }
+        [Required]
+        [DataType(DataType.Text)]
+        public string Token { get; set; }
+    }
+
     [Area("Users")]
     public class RegisterController : Controller {
         private readonly IDatabase _redis;
@@ -40,7 +49,7 @@ namespace NulahCore.Areas.Users.Controllers {
         [Route("~/Register")]
         [ValidateAntiForgeryToken]
         public IActionResult RegisterPost([FromForm]RegisterForm FormData) {
-            var preRegistration = new Register(_redis).PreRegisterEmailAddress(FormData.EmailAddress);
+            var preRegistration = new Register(_redis, _settings).PreRegisterEmailAddress(FormData.EmailAddress);
 
             // For loading email templates from an embedded resource.
             // File must be set to an embedded resource for this to work, won't be editable during runtime.
@@ -57,15 +66,23 @@ namespace NulahCore.Areas.Users.Controllers {
                     {"Token",preRegistration.Token }
                 };
 
-                new Mail(preRegistration.Email, emailTemplatesText, emailTemplatesHtml, emailValues,_settings).SendMail();
+                new Mail(preRegistration.Email, emailTemplatesText, emailTemplatesHtml, emailValues, _settings).SendMail();
                 return View("Registration_New");
             }
         }
 
+        [HttpGet]
+        [Route("~/Register/Confirm")]
+        public IActionResult ConfirmRegistration() {
+            return View();
+        }
+
         [HttpPost]
-        [Route("~/Api/Register")]
-        public void DoRegister() {
-            //new Mail().SendMail();
+        [Route("~/Register/Confirm")]
+        [ValidateAntiForgeryToken]
+        public IActionResult ConfirmRegistrationPost([FromForm]ConfirmRegistrationForm FormData) {
+            var preRegistration = new Register(_redis, _settings).ConfirmEmailAddress(FormData);
+            return null;
         }
     }
 }
