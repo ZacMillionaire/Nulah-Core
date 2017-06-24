@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Flurl;
 using Flurl.Http;
 using NulahCore.Models;
+using StackExchange.Redis;
+using Newtonsoft.Json;
 
 namespace NulahCore.Controllers {
     public class Mail {
@@ -29,7 +31,7 @@ namespace NulahCore.Controllers {
             _apiKey = Settings.Api_Mailgun;
         }
 
-        public async void SendMail() {
+        public async void SendMail(IDatabase Redis, AppSetting Settings) {
 
             string baseUrl = "https://api.mailgun.net/v3/mail.moar.ws/messages";
             string TextBody = RenderMailBody(_textTemplate, _replacements);
@@ -38,12 +40,20 @@ namespace NulahCore.Controllers {
             var client = baseUrl
                 .SetQueryParams(new {
                     from = "User Registration <noreply@moar.ws>",
-                    to = "home@jotunga.com",
+                    to = _toEmail,
                     subject = "New Registration Token",
                     text = TextBody,
                     html = HtmlBody
                 })
                 .WithBasicAuth("api", _apiKey);
+
+            Redis.ListLeftPush(Settings.Redis.BaseKey + "Mail", JsonConvert.SerializeObject(new {
+                from = "User Registration <noreply@moar.ws>",
+                to = _toEmail,
+                subject = "New Registration Token",
+                text = TextBody,
+                html = HtmlBody
+            }));
 
             var res = await client.PostAsync(new StringContent(string.Empty));
         }

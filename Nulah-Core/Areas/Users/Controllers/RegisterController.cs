@@ -66,7 +66,7 @@ namespace NulahCore.Areas.Users.Controllers {
                     {"Token",preRegistration.Token }
                 };
 
-                new Mail(preRegistration.Email, emailTemplatesText, emailTemplatesHtml, emailValues, _settings).SendMail();
+                new Mail(preRegistration.Email, emailTemplatesText, emailTemplatesHtml, emailValues, _settings).SendMail(_redis, _settings);
                 return View("Registration_New");
             }
         }
