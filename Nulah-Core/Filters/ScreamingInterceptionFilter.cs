@@ -53,7 +53,7 @@ namespace NulahCore.Filters {
                     Scheme = Context.Request.Scheme,
                     Referer = Context.Request.Headers["Referer"].Count > 0 ? Context.Request.Headers["Referer"][0] : null,
                     UserAgent = Context.Request.Headers["User-Agent"],
-                    IpAddress = Context.Request.Headers["X-Fowarded-For"],
+                    IpAddress = Context.Request.Headers["X-Forwarded-For"],
                     RequestTime = DateTime.UtcNow,
                     RawHeaders = Context.Request.Headers.ToDictionary(x => x.Key, x => x.Value.ToString())
                 };
