@@ -35,7 +35,7 @@ namespace NulahCore.Extensions.Logging {
                     EventId = eventId.Id,
                     Event = state.ToString()
                 };
-                _redis.ListLeftPush(KEY_logKey, state.ToString());
+                _redis.ListLeftPush(KEY_logKey, JsonConvert.SerializeObject(Event));
             } else {
                 _redis.ListLeftPush(KEY_logKey, state.ToString());
             }
