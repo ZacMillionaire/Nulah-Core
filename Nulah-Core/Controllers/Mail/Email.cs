@@ -8,14 +8,12 @@ using Flurl.Http;
 using NulahCore.Models;
 using StackExchange.Redis;
 using Newtonsoft.Json;
+using NulahCore.Controllers.Mail.Models;
 
 namespace NulahCore.Controllers {
-    public class Mail {
+    public class Email {
 
-        private readonly string _toEmail;
-        private readonly string _textTemplate;
-        private readonly string _htmlTemplate;
-        private readonly Dictionary<string, string> _replacements;
+        private readonly MailSettings _details;
         private readonly string _apiKey;
         /*
         public Mail(string ToEmail, string TemplateString) {
@@ -23,34 +21,31 @@ namespace NulahCore.Controllers {
             _textTemplate = TemplateString;
         }
         */
-        public Mail(string ToEmail, string TextTemplateString, string HtmlTemplateString, Dictionary<string, string> TemplateReplacements, AppSetting Settings) {
-            _toEmail = ToEmail;
-            _textTemplate = TextTemplateString;
-            _htmlTemplate = HtmlTemplateString;
-            _replacements = TemplateReplacements;
+        public Email(MailSettings Details, AppSetting Settings) {
+            _details = Details;
             _apiKey = Settings.Api_Mailgun;
         }
 
         public async void SendMail(IDatabase Redis, AppSetting Settings) {
 
             string baseUrl = "https://api.mailgun.net/v3/mail.moar.ws/messages";
-            string TextBody = RenderMailBody(_textTemplate, _replacements);
-            string HtmlBody = RenderMailBody(_htmlTemplate, _replacements);
+            string TextBody = RenderMailBody(_details.TextTemplate, _details.Replacements);
+            string HtmlBody = RenderMailBody(_details.HtmlTemplate, _details.Replacements);
 
             var client = baseUrl
                 .SetQueryParams(new {
-                    from = "User Registration <noreply@moar.ws>",
-                    to = _toEmail,
-                    subject = "New Registration Token",
+                    from = _details.From,
+                    to = _details.To,
+                    subject = _details.Subject,
                     text = TextBody,
                     html = HtmlBody
                 })
                 .WithBasicAuth("api", _apiKey);
 
             Redis.ListLeftPush(Settings.Redis.BaseKey + "Mail", JsonConvert.SerializeObject(new {
-                from = "User Registration <noreply@moar.ws>",
-                to = _toEmail,
-                subject = "New Registration Token",
+                from = _details.From,
+                to = _details.To,
+                subject = _details.Subject,
                 text = TextBody,
                 html = HtmlBody
             }));

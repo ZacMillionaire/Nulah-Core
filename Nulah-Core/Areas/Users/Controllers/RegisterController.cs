@@ -9,6 +9,7 @@ using StackExchange.Redis;
 using NulahCore.Controllers.Users;
 using Microsoft.Extensions.FileProviders;
 using NulahCore.Models;
+using NulahCore.Controllers.Mail.Models;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -65,8 +66,15 @@ namespace NulahCore.Areas.Users.Controllers {
                     {"Expires",preRegistration.Expires.ToString("R") },
                     {"Token",preRegistration.Token }
                 };
-
-                new Mail(preRegistration.Email, emailTemplatesText, emailTemplatesHtml, emailValues, _settings).SendMail(_redis, _settings);
+                MailSettings emailSettings = new MailSettings {
+                    From = "User Registration <noreply@moar.ws>",
+                    To = preRegistration.Email,
+                    HtmlTemplate = emailTemplatesHtml,
+                    TextTemplate = emailTemplatesText,
+                    Replacements = emailValues,
+                    Subject = "New Registration Token"
+                };
+                new Email(emailSettings, _settings).SendMail(_redis, _settings);
                 return View("Registration_New");
             }
         }
