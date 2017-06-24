@@ -53,9 +53,9 @@ namespace NulahCore.Filters {
                     Scheme = Context.Request.Scheme,
                     Referer = Context.Request.Headers["Referer"].Count > 0 ? Context.Request.Headers["Referer"][0] : null,
                     UserAgent = Context.Request.Headers["User-Agent"],
-                    //IpAddress = Context.Request.Headers["X-Original-For"],
+                    IpAddress = Context.Request.Headers["X-Fowarded-For"],
                     RequestTime = DateTime.UtcNow,
-                    RawHeaders = JsonConvert.SerializeObject(Context.Request.Headers)
+                    RawHeaders = Context.Request.Headers.ToDictionary(x => x.Key, x => x.Value.ToString())
                 };
 
                 if(request.Referer != null) {
@@ -105,7 +105,7 @@ namespace NulahCore.Filters {
         /// response in ms
         /// </summary>
         public long ResponseTime { get; set; }
-        public string RawHeaders { get; set; }
+        public Dictionary<string,string> RawHeaders { get; set; }
     }
 
     public class Referer {

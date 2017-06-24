@@ -30,18 +30,29 @@ namespace NulahCore.Extensions.Logging {
         }
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter) {
-            var Event = new ScreamingEvent {
-                EventId = eventId.Id,
-                Event = state.ToString()
-            };
-            _redis.ListLeftPush(KEY_logKey, JsonConvert.SerializeObject(Event));
+            if(eventId.Id < 1000) {
+                var Event = new ScreamingEvent<string> {
+                    EventId = eventId.Id,
+                    Event = state.ToString()
+                };
+                _redis.ListLeftPush(KEY_logKey, state.ToString());
+            } else {
+                _redis.ListLeftPush(KEY_logKey, state.ToString());
+            }
         }
 
     }
 
     public static class ScreamingLoggerExtensions {
-        public static void LogNavigation(this ILogger Logger, object LogObject, int EventId) {
-            Logger.LogInformation(EventId, JsonConvert.SerializeObject(LogObject));
+        public static void LogNavigation<T>(this ILogger Logger, T LogObject, int EventId) {
+
+            var Event = new ScreamingEvent<T> {
+                EventId = EventId,
+                Event = LogObject
+            };
+
+
+            Logger.LogInformation(EventId, JsonConvert.SerializeObject(Event));
         }
     }
 
@@ -65,8 +76,8 @@ namespace NulahCore.Extensions.Logging {
         }
     }
 
-    public class ScreamingEvent {
+    public class ScreamingEvent<T> {
         public int EventId { get; set; }
-        public string Event { get; set; }
+        public T Event { get; set; }
     }
 }
