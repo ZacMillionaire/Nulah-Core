@@ -15,6 +15,13 @@ using StackExchange.Redis;
 using Microsoft.Extensions.FileProviders;
 using NulahCore.Filters;
 using NulahCore.Extensions.Logging;
+using Microsoft.AspNetCore.Authentication.OAuth;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using Newtonsoft.Json;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using NulahCore.Models.User;
+using System.Security.Claims;
 
 namespace NulahCore {
     public class Startup {
@@ -43,6 +50,10 @@ namespace NulahCore {
             services.AddScoped(_ => redis);
             services.AddScoped(_ => ApplicationSettings);
 
+            services.AddAuthentication(
+                options => options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme
+            );
+
             // configure MVC
             services.AddMvc(Options => {
                 Options.RespectBrowserAcceptHeader = true;
@@ -56,7 +67,58 @@ namespace NulahCore {
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, IDatabase Redis) {
             app.UseDefaultFiles();
             app.UseStaticFiles();
+
+            // configure cookies
+            app.UseCookieAuthentication(new CookieAuthenticationOptions {
+                AutomaticAuthenticate = true,
+                AutomaticChallenge = true,
+                LoginPath = new PathString("/Login"),
+                LogoutPath = new PathString("/Logout"),
+                AccessDeniedPath = "/",
+                ExpireTimeSpan = new TimeSpan(30, 0, 0, 0),
+                SlidingExpiration = true
+            });
+
+            app.UseOAuthAuthentication(new OAuthOptions {
+                ClientId = "0d32e4e6eba55f899c6d",
+                ClientSecret = "ed69962b2ef6a980846aa9045ef4f37b98b2f7b1",
+                Scope = { "public_repo" },
+                SaveTokens = true,
+                AuthenticationScheme = "GitHub",
+                AuthorizationEndpoint = "http://github.com/login/oauth/authorize",
+                TokenEndpoint = "https://github.com/login/oauth/access_token",
+                UserInformationEndpoint = "https://api.github.com/user?access_token=",
+                CallbackPath = "/signin-github",
+
+                Events = new OAuthEvents {
+                    // https://auth0.com/blog/authenticating-a-user-with-linkedin-in-aspnet-core/
+                    // The OnCreatingTicket event is called after the user has been authenticated and the OAuth middleware has
+                    // created an auth ticket. We need to manually call the UserInformationEndpoint to retrieve the user's information,
+                    // parse the resulting JSON to extract the relevant information, and add the correct claims.
+                    OnCreatingTicket = async context => {
+                        // Retrieve user info by passing an Authorization header with the value token {accesstoken};
+                        var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);
+                        request.Headers.Authorization = new AuthenticationHeaderValue("token", context.AccessToken);
+
+                        // Extract the user info object
+                        var response = await context.Backchannel.SendAsync(request, context.HttpContext.RequestAborted);
+                        response.EnsureSuccessStatusCode();
+                        var user = JsonConvert.DeserializeObject<GitHubProfile>(await response.Content.ReadAsStringAsync());
+                        // Add the Name Identifier claim for htmlantiforgery
+                        context.Identity.AddClaim(
+                            new Claim(
+                                ClaimTypes.NameIdentifier,
+                                user.id.ToString(),
+                                ClaimValueTypes.UInteger64,
+                                context.Options.ClaimsIssuer
+                            )
+                        );
+                    }
+                }
+            });
+
             /*
+            // commented out until I start doing image uploads
             app.UseStaticFiles(new StaticFileOptions
             {
                 FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), @"content", @"images")),
@@ -73,7 +135,7 @@ namespace NulahCore {
             loggerFactory.AddProvider(new ScreamingLoggerProvider(Redis, ApplicationSettings));
 
             if(env.IsDevelopment()) {
-                //app.UseDeveloperExceptionPage();
+                app.UseDeveloperExceptionPage();
                 loggerFactory.AddDebug();
             }
 

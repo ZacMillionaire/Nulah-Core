@@ -43,6 +43,7 @@ namespace NulahCore.Areas.Users.Controllers {
         [HttpGet]
         [Route("~/Register")]
         public IActionResult Index() {
+            throw new NotImplementedException();
             return View();
         }
 
@@ -50,6 +51,7 @@ namespace NulahCore.Areas.Users.Controllers {
         [Route("~/Register")]
         [ValidateAntiForgeryToken]
         public IActionResult RegisterPost([FromForm]RegisterForm FormData) {
+            throw new NotImplementedException();
             var preRegistration = new Register(_redis, _settings).PreRegisterEmailAddress(FormData.EmailAddress);
 
             // For loading email templates from an embedded resource.
@@ -84,6 +86,7 @@ namespace NulahCore.Areas.Users.Controllers {
         [HttpGet]
         [Route("~/Register/Confirm")]
         public IActionResult ConfirmRegistration() {
+            throw new NotImplementedException();
             return View();
         }
 
@@ -91,6 +94,7 @@ namespace NulahCore.Areas.Users.Controllers {
         [Route("~/Register/Confirm")]
         [ValidateAntiForgeryToken]
         public IActionResult ConfirmRegistrationPost([FromForm]ConfirmRegistrationForm FormData) {
+            throw new NotImplementedException();
             var preRegistration = new Register(_redis, _settings).ConfirmEmailAddress(FormData);
             return null;
         }

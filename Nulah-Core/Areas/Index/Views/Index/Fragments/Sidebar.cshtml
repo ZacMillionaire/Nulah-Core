@@ -20,6 +20,21 @@
             </div>
         </div>
     </nav>
+    @if(!User.IsLoggedIn) {
+        <nav>
+            <div class="module-column">
+                <div class="module">
+                    <div class="module-content">
+                        <ul>
+                            <li>
+                                <a href="~/Login">Login</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    }
     @if(User.IsLoggedIn) {
         <nav>
             <div class="module-column">
@@ -28,6 +43,9 @@
                         <ul>
                             <li>
                                 <a href="~/Article/New">New Article</a>
+                            </li>
+                            <li>
+                                <a href="~/Logout">Logout</a>
                             </li>
                         </ul>
                     </div>

@@ -21,9 +21,16 @@ namespace NulahCore.Filters {
 
         public void OnActionExecuting(ActionExecutingContext context) {
             // Inject a PublicUser into ViewData
-            var a = context.Controller as Controller;
-            var b = a.ViewData;
-            b.Add("User", new PublicUser());
+            var user = context.HttpContext.User;
+            var ViewData = ( context.Controller as Controller ).ViewData;
+
+            // create a blank user profile
+            var UserData = new PublicUser();
+
+            if(user.Identity.IsAuthenticated) {
+                UserData.IsLoggedIn = true;
+            }
+            ViewData.Add("User", UserData);
 
             //throw new NotImplementedException();
         }

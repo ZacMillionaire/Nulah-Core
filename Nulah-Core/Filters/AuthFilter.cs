@@ -20,16 +20,21 @@ namespace NulahCore.Filters {
 
         private readonly Role[] RequestedRoles;
 
-        public UserFilter(Role Role) {
-            RequestedRoles = new[] { Role };
+        public UserFilter(Role Require) {
+            RequestedRoles = new[] { Require };
         }
 
-        public UserFilter(Role[] Roles) {
-            RequestedRoles = Roles;
+        public UserFilter(Role[] Requires) {
+            RequestedRoles = Requires;
         }
 
         public override void OnActionExecuting(ActionExecutingContext context) {
 
+            var user = context.HttpContext.User;
+            if(user.Identity.IsAuthenticated && RequestedRoles.Contains(Role.IsLoggedOut)) {
+                context.Result = new RedirectResult("~/");
+            }
+            /*
             // This isn't necessarily a real user, it could be a blank PublicUser that only has IsLoggedIn set to false
             // If the instance IsLoggedIn is true however, we have a legitimate user account
             Controller BaseController = (Controller)context.Controller;
@@ -45,7 +50,7 @@ namespace NulahCore.Filters {
                 //BaseController.ViewData["RedirectUrl"] = BaseController.HttpContext.Request.Path;
             }
 
-
+    */
             base.OnActionExecuting(context);
         }
     }
