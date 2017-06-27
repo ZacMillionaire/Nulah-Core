@@ -69,7 +69,6 @@ namespace NulahCore.Filters {
                         Path = Path,
                         Query = Query
                     };
-                    //var query = headerSplit[1];
                 }
 
                 _timer = new Stopwatch();
@@ -105,7 +104,7 @@ namespace NulahCore.Filters {
         /// response in ms
         /// </summary>
         public long ResponseTime { get; set; }
-        public Dictionary<string,string> RawHeaders { get; set; }
+        public Dictionary<string, string> RawHeaders { get; set; }
     }
 
     public class Referer {

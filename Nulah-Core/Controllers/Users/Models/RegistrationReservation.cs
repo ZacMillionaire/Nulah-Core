@@ -13,6 +13,6 @@ namespace NulahCore.Controllers.Users.Models {
         [Newtonsoft.Json.JsonIgnore]
         public bool EmailExists { get; set; }
         [Newtonsoft.Json.JsonIgnore]
-        public bool InvalidToken { get; set; }
+        public bool ValidToken { get; set; }
     }
 }

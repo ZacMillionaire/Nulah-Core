@@ -33,14 +33,17 @@ namespace NulahCore {
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services) {
+            // configure app settings
             _config.GetSection("ConnectionStrings").Bind(ApplicationSettings);
             ApplicationSettings.Api_Mailgun = _config["Api:Mailgun"];
             ApplicationSettings.LogLevel = (LogLevel)Enum.Parse(typeof(LogLevel), _config["Logging:Level"]);
 
+            // inject redis and app settings
             IDatabase redis = RedisStore.RedisCache;
             services.AddScoped(_ => redis);
             services.AddScoped(_ => ApplicationSettings);
 
+            // configure MVC
             services.AddMvc(Options => {
                 Options.RespectBrowserAcceptHeader = true;
             })

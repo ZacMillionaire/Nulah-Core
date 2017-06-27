@@ -26,7 +26,7 @@ namespace NulahCore.Controllers {
             _apiKey = Settings.Api_Mailgun;
         }
 
-        public async void SendMail(IDatabase Redis, AppSetting Settings) {
+        public async void Send(IDatabase Redis, AppSetting Settings) {
 
             string baseUrl = "https://api.mailgun.net/v3/mail.moar.ws/messages";
             string TextBody = RenderMailBody(_details.TextTemplate, _details.Replacements);

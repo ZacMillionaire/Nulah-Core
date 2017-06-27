@@ -66,6 +66,7 @@ namespace NulahCore.Areas.Users.Controllers {
                     {"Expires",preRegistration.Expires.ToString("R") },
                     {"Token",preRegistration.Token }
                 };
+
                 MailSettings emailSettings = new MailSettings {
                     From = "User Registration <noreply@moar.ws>",
                     To = preRegistration.Email,
@@ -74,7 +75,8 @@ namespace NulahCore.Areas.Users.Controllers {
                     Replacements = emailValues,
                     Subject = "New Registration Token"
                 };
-                new Email(emailSettings, _settings).SendMail(_redis, _settings);
+                new Email(emailSettings, _settings).Send(_redis, _settings);
+
                 return View("Registration_New");
             }
         }

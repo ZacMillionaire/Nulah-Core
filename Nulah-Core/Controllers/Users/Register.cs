@@ -82,7 +82,7 @@ namespace NulahCore.Controllers.Users {
             string EmailHash = HashEmail(formData.EmailAddress);
             var reservation = GetReservation(EmailHash, formData.Token);
 
-            if(reservation.InvalidToken == false && reservation.EmailExists == true) {
+            if(reservation.ValidToken == true && reservation.EmailExists == true) {
                 return true;
             }
             return false;
@@ -101,11 +101,11 @@ namespace NulahCore.Controllers.Users {
             RegistrationReservation pendingRegistration = RedisStore.Deserialise<RegistrationReservation>(_redis.HashGet(redisKey, "Reservation"));
             if(pendingRegistration.Token != Token) {
                 return new RegistrationReservation {
-                    InvalidToken = true
+                    ValidToken = false
                 };
             } else {
                 pendingRegistration.EmailExists = true;
-                pendingRegistration.InvalidToken = false;
+                pendingRegistration.ValidToken = true;
                 return pendingRegistration;
             }
 
