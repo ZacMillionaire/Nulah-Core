@@ -4,14 +4,40 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using NulahCore.Controllers;
+using NulahCore.Filters;
+using NulahCore.Controllers.Users;
+using StackExchange.Redis;
+using NulahCore.Models;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
-namespace NulahCore.Areas.Users.Controllers
-{
+namespace NulahCore.Areas.Users.Controllers {
     [Area("Users")]
-    public class UserController : Controller
-    {
+    public class UserController : Controller {
+
+        private readonly IDatabase _redis;
+        private readonly AppSetting _settings;
+
+        public UserController(IDatabase Redis, AppSetting Settings) {
+            _redis = Redis;
+            _settings = Settings;
+        }
+
+        [HttpGet]
+        [Route("~/Profile")]
+        [UserFilter(Role.IsLoggedIn)]
+        public IActionResult Index() {
+            return View();
+        }
+
+        [HttpGet]
+        [Route("~/Profile/{UserId}")]
+        public IActionResult OtherUserProfile(string UserId) {
+            // Will be null if no data is found for the UserId
+            ViewData["Profile"] = UserProfile.GetUserById(UserId, _redis, _settings);
+            return View();
+        }
+
         /*
         [HttpGet]
         [Route("~/Register")]

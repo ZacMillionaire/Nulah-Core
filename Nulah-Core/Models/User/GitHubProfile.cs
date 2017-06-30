@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -22,14 +23,22 @@ namespace NulahCore.Models.User {
         public string events_url { get; set; }
         public string received_events_url { get; set; }
         public string type { get; set; }
+
+        /// <summary>
+        /// GitHub site admin
+        /// </summary>
+        [DefaultValue(false)]
         public bool site_admin { get; set; }
-        public object name { get; set; }
-        public object company { get; set; }
+        public string name { get; set; }
+        public string company { get; set; }
         public string blog { get; set; }
-        public object location { get; set; }
-        public object email { get; set; }
+        public string location { get; set; }
+        public string email { get; set; }
+
+        [DefaultValue(false)]
         public bool hireable { get; set; }
-        public object bio { get; set; }
+
+        public string bio { get; set; }
         public int public_repos { get; set; }
         public int public_gists { get; set; }
         public int followers { get; set; }

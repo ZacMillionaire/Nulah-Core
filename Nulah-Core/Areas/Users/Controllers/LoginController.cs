@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 namespace NulahCore.Areas.Users.Controllers {
     [Area("Users")]
     public class LoginController : Controller {
+
         [HttpGet]
         [Route("~/Login")]
         [UserFilter(Role.IsLoggedOut)]

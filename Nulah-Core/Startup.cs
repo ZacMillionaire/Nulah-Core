@@ -22,6 +22,7 @@ using Newtonsoft.Json;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using NulahCore.Models.User;
 using System.Security.Claims;
+using NulahCore.Controllers.Users;
 
 namespace NulahCore {
     public class Startup {
@@ -80,8 +81,8 @@ namespace NulahCore {
             });
 
             app.UseOAuthAuthentication(new OAuthOptions {
-                ClientId = "0d32e4e6eba55f899c6d",
-                ClientSecret = "ed69962b2ef6a980846aa9045ef4f37b98b2f7b1",
+                ClientId = _config["Api:GitHub:ClientId"],
+                ClientSecret = _config["Api:GitHub:ClientSecret"],
                 Scope = { "public_repo" },
                 SaveTokens = true,
                 AuthenticationScheme = "GitHub",
@@ -90,29 +91,14 @@ namespace NulahCore {
                 UserInformationEndpoint = "https://api.github.com/user?access_token=",
                 CallbackPath = "/signin-github",
 
+                // This looks fucking ugly though, need to find out how to move it to a class
                 Events = new OAuthEvents {
                     // https://auth0.com/blog/authenticating-a-user-with-linkedin-in-aspnet-core/
                     // The OnCreatingTicket event is called after the user has been authenticated and the OAuth middleware has
                     // created an auth ticket. We need to manually call the UserInformationEndpoint to retrieve the user's information,
                     // parse the resulting JSON to extract the relevant information, and add the correct claims.
                     OnCreatingTicket = async context => {
-                        // Retrieve user info by passing an Authorization header with the value token {accesstoken};
-                        var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);
-                        request.Headers.Authorization = new AuthenticationHeaderValue("token", context.AccessToken);
-
-                        // Extract the user info object
-                        var response = await context.Backchannel.SendAsync(request, context.HttpContext.RequestAborted);
-                        response.EnsureSuccessStatusCode();
-                        var user = JsonConvert.DeserializeObject<GitHubProfile>(await response.Content.ReadAsStringAsync());
-                        // Add the Name Identifier claim for htmlantiforgery
-                        context.Identity.AddClaim(
-                            new Claim(
-                                ClaimTypes.NameIdentifier,
-                                user.id.ToString(),
-                                ClaimValueTypes.UInteger64,
-                                context.Options.ClaimsIssuer
-                            )
-                        );
+                        await UserProfile.RegisterUser(context, Redis, ApplicationSettings);
                     }
                 }
             });

@@ -1,10 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.DependencyInjection;
+using NulahCore.Controllers.Users;
 using NulahCore.Models.User;
 using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace NulahCore.Filters {
@@ -16,9 +19,12 @@ namespace NulahCore.Filters {
             _redis = Redis;
         }
         public void OnActionExecuted(ActionExecutedContext context) {
-            //throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Inject user data from data store before the action has started
+        /// </summary>
+        /// <param name="context"></param>
         public void OnActionExecuting(ActionExecutingContext context) {
             // Inject a PublicUser into ViewData
             var user = context.HttpContext.User;
@@ -28,11 +34,12 @@ namespace NulahCore.Filters {
             var UserData = new PublicUser();
 
             if(user.Identity.IsAuthenticated) {
-                UserData.IsLoggedIn = true;
+                // create a PublicUser object with data from redis
+                var UserKey = user.Claims.First(x => x.Type == "RedisKey").Value;
+                UserData = UserProfile.GetUser(UserKey, _redis);
             }
             ViewData.Add("User", UserData);
 
-            //throw new NotImplementedException();
         }
     }
 }
