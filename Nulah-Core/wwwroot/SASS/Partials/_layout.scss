@@ -11,3 +11,44 @@ body {
     //background-color: hsl(256, 100%, 5%);
     //background: linear-gradient( to top, hsl(256, 100%, 5%), hsl(256, 100%, 15%) );
 }
+
+.page-container {
+    display: flex;
+    width: 1200px;
+    margin: 0 auto;
+    padding: 15px 0;
+    //justify-content: space-between;
+}
+
+.main-content-container {
+    flex: 1;
+}
+
+.container {
+    border: 1px solid hsl(272, 0%, 70%);
+    flex: 1;
+    margin: 5px;
+    border-radius: 3px;
+    box-shadow: 0 0 2px hsl(272, 0%, 85%);
+
+    .container-header {
+        padding: 5px;
+        background-color: hsl(211, 100%, 80%);
+        border-radius: 3px 3px 0 0;
+        background: linear-gradient(to bottom, hsl(211, 100%, 80%), hsl(211, 100%, 75%));
+        box-shadow: inset 0 1px hsla(0, 0%, 100%,0.5), 0 1px 2px hsl(272, 0%, 85%);
+        border-bottom: 1px solid hsl(272, 0%, 70%);
+        overflow: hidden;
+        font-weight: bold;
+        text-shadow: 0 1px hsla(0,0%,100%,0.5);
+        color: hsl(0, 0%, 20%);
+    }
+
+    .container-content {
+        padding: 5px 15px;
+    }
+}
+
+.sidebar {
+    flex: 0 0 250px;
+}

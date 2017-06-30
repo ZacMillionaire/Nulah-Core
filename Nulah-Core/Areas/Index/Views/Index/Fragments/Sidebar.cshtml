@@ -4,53 +4,45 @@
 }
 
 <div class="sidebar">
-    <nav>
-        <div class="module-column">
-            <div class="module">
-                <div class="module-content">
+    <div class="container">
+        <div class="container-header">
+            Nav
+        </div>
+        <div class="container-content">
+            <nav>
+                <ul>
+                    <li>
+                        <a href="~/Articles">Archives</a>
+                    </li>
+                    @if(!User.IsLoggedIn) {
+                        <li>
+                            <a href="~/Login">Login</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        </div>
+    </div>
+    @if(User.IsLoggedIn) {
+        <div class="container">
+            <div class="container-header">
+                User
+            </div>
+            <div class="container-content">
+                <nav>
                     <ul>
                         <li>
-                            <a href="~/Articles">Archives</a>
+                            <a href="~/Article/New">New Article</a>
+                        </li>
+                        <li>
+                            <a href="~/Profile">Profile</a>
+                        </li>
+                        <li>
+                            <a href="~/Logout">Logout</a>
                         </li>
                     </ul>
-                </div>
+                </nav>
             </div>
         </div>
-    </nav>
-    @if(!User.IsLoggedIn) {
-        <nav>
-            <div class="module-column">
-                <div class="module">
-                    <div class="module-content">
-                        <ul>
-                            <li>
-                                <a href="~/Login">Login</a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </nav>
-    }
-    @if(User.IsLoggedIn) {
-        <nav>
-            <div class="module-column">
-                <div class="module">
-                    <div class="module-content">
-                        <ul>
-                            <li>
-                                <a href="~/Article/New">New Article</a>
-                            </li>
-                            <li>
-                                <a href="~/Profile">Profile</a>
-                            </li>
-                            <li>
-                                <a href="~/Logout">Logout</a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </nav>
     }
 </div>
