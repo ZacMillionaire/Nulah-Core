@@ -37,6 +37,11 @@ namespace NulahCore.Filters {
 
         public async Task Invoke(HttpContext Context) {
             try {
+                //https://stackoverflow.com/questions/31276849/asp-net-5-oauth-redirect-uri-not-using-https
+                /*if(string.Equals(Context.Request.Headers["X-Forwarded-Proto"], "https", StringComparison.OrdinalIgnoreCase)) {
+                    Context.Request.Scheme = "https";
+                }*/
+
                 var request = new Navigation {
                     Method = Context.Request.Method,
                     Path = Context.Request.Path,
