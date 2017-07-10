@@ -86,7 +86,7 @@ namespace NulahCore {
                 Scope = { "public_repo" },
                 SaveTokens = true,
                 AuthenticationScheme = "GitHub",
-                AuthorizationEndpoint = "http://github.com/login/oauth/authorize",
+                AuthorizationEndpoint = "https://github.com/login/oauth/authorize",
                 TokenEndpoint = "https://github.com/login/oauth/access_token",
                 UserInformationEndpoint = "https://api.github.com/user?access_token=",
                 CallbackPath = new PathString("/signin-github"),
