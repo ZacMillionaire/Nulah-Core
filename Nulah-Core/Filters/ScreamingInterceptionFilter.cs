@@ -41,7 +41,6 @@ namespace NulahCore.Filters {
                 /*if(string.Equals(Context.Request.Headers["X-Forwarded-Proto"], "https", StringComparison.OrdinalIgnoreCase)) {
                     Context.Request.Scheme = "https";
                 }*/
-                Context.Request.Scheme = "https";
 
                 var request = new Navigation {
                     Method = Context.Request.Method,
