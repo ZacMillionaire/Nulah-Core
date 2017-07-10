@@ -3,23 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp1.1</TargetFramework>
     <PackageTargetFallback>portable-net45+win8</PackageTargetFallback>
-    <!--<EnableDefaultCompileItems>false</EnableDefaultCompileItems>-->
   </PropertyGroup>
-
-  <ItemGroup>
-    <Content Include="wwwroot\fonts\fontawesome-webfont.eot" />
-    <Content Include="wwwroot\fonts\fontawesome-webfont.svg" />
-    <Content Include="wwwroot\fonts\fontawesome-webfont.ttf" />
-    <Content Include="wwwroot\fonts\fontawesome-webfont.woff" />
-    <Content Include="wwwroot\fonts\fontawesome-webfont.woff2" />
-    <Content Include="wwwroot\fonts\FontAwesome.otf" />
-  </ItemGroup>
-
-  <!--<ItemGroup>
-    <Content Include="wwwroot\Templates\NewRegistration.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>-->
 
   <ItemGroup>
     <PackageReference Include="Flurl.Http" Version="1.1.2" />
@@ -36,9 +20,4 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="1.1.2" />
     <PackageReference Include="StackExchange.Redis" Version="1.2.4" />
   </ItemGroup>
-  <!--<ItemGroup>
-    <Content Update="wwwroot/Templates\NewRegistration.html">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>-->  
 </Project>
