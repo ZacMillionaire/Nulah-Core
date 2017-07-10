@@ -15,6 +15,7 @@ namespace NulahCore.Models.User {
         public string Blog { get; set; }
         public DateTime MemberSince { get; set; }
         public DateTime LastUpdated { get; set; }
+        public int UserId { get; set; }
 
         public PublicUser() {
             IsLoggedIn = false;

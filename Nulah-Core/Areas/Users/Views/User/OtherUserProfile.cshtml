@@ -1,19 +1,20 @@
-﻿<div class="page-container">
-    <div class="front-page-content">
-        <div class="module-column">
-            <div class="module">
-                <div class="module-content">
-                    <div class="module-body">
-                        Someone elses profile
-
-                        @if(ViewData["Profile"] == null) {
-                            <text>User Not Found</text>
-                        } else {
-                            @Html.Partial("Shared/Fragments/UserProfile_Fragment", ViewData["Profile"])
-                        }
-                    </div>
-                </div>
-            </div>
-        </div>
+﻿@using NulahCore.Models.User;
+@{
+    PublicUser ViewingProfile = (PublicUser)ViewData["Profile"];
+    PublicUser OwnProfile = (PublicUser)ViewData["Profile"];
+    bool IsOwnProfile = ViewingProfile.UserId == OwnProfile.UserId;
+}
+<div class="container">
+    <div class="container-header">
+        Your Profile
     </div>
+
+    @if(ViewData["Profile"] == null) {
+        <text>User Not Found</text>
+    } else {
+        if(IsOwnProfile) {
+            <div>[debug]This is you</div>
+        }
+        @Html.Partial("Shared/Fragments/UserProfile_Fragment", ViewData["Profile"])
+    }
 </div>

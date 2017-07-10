@@ -7,7 +7,10 @@
     <link href="~/css/nulah.css" rel="stylesheet" />
 </head>
 <body>
-    @RenderBody()
-    @RenderSection("Scripts",false)
+    <div class="page-container">
+        @Html.Partial("~/Areas/Shared/Fragments/Sidebar.cshtml")
+        @RenderBody()
+    </div>
+    @RenderSection("Scripts", false)
 </body>
 </html>
