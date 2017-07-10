@@ -89,7 +89,7 @@ namespace NulahCore {
                 AuthorizationEndpoint = "http://github.com/login/oauth/authorize",
                 TokenEndpoint = "https://github.com/login/oauth/access_token",
                 UserInformationEndpoint = "https://api.github.com/user?access_token=",
-                CallbackPath = "/signin-github",
+                CallbackPath = new PathString("/signin-github"),
 
                 // This looks fucking ugly though, need to find out how to move it to a class
                 Events = new OAuthEvents {
