@@ -80,28 +80,32 @@ namespace NulahCore {
                 SlidingExpiration = true
             });
 
-            app.UseOAuthAuthentication(new OAuthOptions {
-                ClientId = _config["Api:GitHub:ClientId"],
-                ClientSecret = _config["Api:GitHub:ClientSecret"],
-                Scope = { "public_repo" },
-                SaveTokens = true,
-                AuthenticationScheme = "GitHub",
-                AuthorizationEndpoint = "https://github.com/login/oauth/authorize",
-                TokenEndpoint = "https://github.com/login/oauth/access_token",
-                UserInformationEndpoint = "https://api.github.com/user?access_token=",
-                CallbackPath = new PathString("/signin-github"),
+            try {
+                app.UseOAuthAuthentication(new OAuthOptions {
+                    ClientId = _config["Api:GitHub:ClientId"],
+                    ClientSecret = _config["Api:GitHub:ClientSecret"],
+                    Scope = { "public_repo" },
+                    SaveTokens = true,
+                    AuthenticationScheme = "GitHub",
+                    AuthorizationEndpoint = "https://github.com/login/oauth/authorize",
+                    TokenEndpoint = "https://github.com/login/oauth/access_token",
+                    UserInformationEndpoint = "https://api.github.com/user?access_token=",
+                    CallbackPath = new PathString("/signin-github"),
 
-                // This looks fucking ugly though, need to find out how to move it to a class
-                Events = new OAuthEvents {
-                    // https://auth0.com/blog/authenticating-a-user-with-linkedin-in-aspnet-core/
-                    // The OnCreatingTicket event is called after the user has been authenticated and the OAuth middleware has
-                    // created an auth ticket. We need to manually call the UserInformationEndpoint to retrieve the user's information,
-                    // parse the resulting JSON to extract the relevant information, and add the correct claims.
-                    OnCreatingTicket = async context => {
-                        await UserProfile.RegisterUser(context, Redis, ApplicationSettings, loggerFactory.CreateLogger<UserProfile>());
+                    // This looks fucking ugly though, need to find out how to move it to a class
+                    Events = new OAuthEvents {
+                        // https://auth0.com/blog/authenticating-a-user-with-linkedin-in-aspnet-core/
+                        // The OnCreatingTicket event is called after the user has been authenticated and the OAuth middleware has
+                        // created an auth ticket. We need to manually call the UserInformationEndpoint to retrieve the user's information,
+                        // parse the resulting JSON to extract the relevant information, and add the correct claims.
+                        OnCreatingTicket = async context => {
+                            await UserProfile.RegisterUser(context, Redis, ApplicationSettings);
+                        }
                     }
-                }
-            });
+                });
+            } catch(Exception e) {
+                loggerFactory.CreateLogger<UserProfile>().LogCritical((int)ScreamingLogLevel.Error_Critical, JsonConvert.SerializeObject(e));
+            }
 
             /*
             // commented out until I start doing image uploads

@@ -59,9 +59,8 @@ namespace NulahCore.Controllers.Users {
             }
         }
 
-        public static async Task RegisterUser(OAuthCreatingTicketContext context, IDatabase Redis, AppSetting Settings, ILogger Logger) {
+        public static async Task RegisterUser(OAuthCreatingTicketContext context, IDatabase Redis, AppSetting Settings) {
             // Retrieve user info by passing an Authorization header with the value token {accesstoken};
-            try {
                 var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);
                 request.Headers.Authorization = new AuthenticationHeaderValue("token", context.AccessToken);
 
@@ -91,9 +90,6 @@ namespace NulahCore.Controllers.Users {
                 );
 
                 UserProfile.Register(user, Redis, Settings);
-            } catch(Exception e) {
-                Logger.LogCritical((int)ScreamingLogLevel.Error_Critical, JsonConvert.SerializeObject(e));
-            }
         }
 
         /// <summary>
