@@ -38,6 +38,10 @@ namespace NulahCore.Filters {
         public async Task Invoke(HttpContext Context) {
             try {
 
+                if(string.Equals(Context.Request.Headers["X-Forwarded-Proto"], "https", StringComparison.OrdinalIgnoreCase)) {
+                    Context.Request.Scheme = "https";
+                }
+
                 var request = new Navigation {
                     Method = Context.Request.Method,
                     Path = Context.Request.Path,
