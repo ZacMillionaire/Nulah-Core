@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authentication.OAuth;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using NulahCore.Controllers.Users.Models;
+using NulahCore.Extensions.Logging;
 using NulahCore.Filters;
 using NulahCore.Models;
 using NulahCore.Models.User;
@@ -57,7 +59,7 @@ namespace NulahCore.Controllers.Users {
             }
         }
 
-        public static async Task RegisterUser(OAuthCreatingTicketContext context, IDatabase Redis, AppSetting Settings) {
+        public static async Task RegisterUser(OAuthCreatingTicketContext context, IDatabase Redis, AppSetting Settings, ILogger Logger) {
             // Retrieve user info by passing an Authorization header with the value token {accesstoken};
             try {
                 var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);
@@ -90,7 +92,7 @@ namespace NulahCore.Controllers.Users {
 
                 UserProfile.Register(user, Redis, Settings);
             } catch(Exception e) {
-                throw e;
+                Logger.LogCritical((int)ScreamingLogLevel.Error_Critical, JsonConvert.SerializeObject(e));
             }
         }
 

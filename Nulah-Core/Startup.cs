@@ -98,7 +98,7 @@ namespace NulahCore {
                     // created an auth ticket. We need to manually call the UserInformationEndpoint to retrieve the user's information,
                     // parse the resulting JSON to extract the relevant information, and add the correct claims.
                     OnCreatingTicket = async context => {
-                        await UserProfile.RegisterUser(context, Redis, ApplicationSettings);
+                        await UserProfile.RegisterUser(context, Redis, ApplicationSettings, loggerFactory.CreateLogger<UserProfile>());
                     }
                 }
             });
