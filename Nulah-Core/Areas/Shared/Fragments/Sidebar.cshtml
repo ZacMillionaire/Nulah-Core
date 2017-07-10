@@ -4,44 +4,54 @@
 }
 
 <div class="sidebar">
-    <div class="container">
-        <div class="container-header">
+    <div class="nav-container">
+        <div class="nav-header">
             Nav
         </div>
-        <div class="container-content">
+        <div class="nav-content">
             <nav>
                 <ul>
                     <li>
-                        <a href="~/">Home</a>
+                        <a href="~/"><i class="fa fa-home"></i><span>Home</span></a>
                     </li>
                     <li>
-                        <a href="~/Articles">Archives</a>
+                        <a href="~/Articles"><i class="fa fa-archive"></i><span>Archives</span></a>
                     </li>
-                    @if(!User.IsLoggedIn) {
-                        <li>
-                            <a href="~/Login">Login</a>
-                        </li>
-                    }
                 </ul>
             </nav>
         </div>
     </div>
     @if(User.IsLoggedIn) {
-        <div class="container">
-            <div class="container-header">
+        <div class="nav-container user-menu">
+            <div class="nav-header">
                 User
             </div>
-            <div class="container-content">
+            <div class="nav-content">
                 <nav>
                     <ul>
                         <li>
-                            <a href="~/Article/New">New Article</a>
+                            <a href="~/Article/New"><i class="fa fa-file-text-o"></i><span>New Article</span></a>
                         </li>
                         <li>
-                            <a href="~/Profile">Profile</a>
+                            <a href="~/Profile"><i class="fa fa-user"></i><span>Profile</span></a>
                         </li>
                         <li>
-                            <a href="~/Logout">Logout</a>
+                            <a href="~/Logout"><i class="fa fa-sign-out"></i><span>Logout</span></a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    } else {
+        <div class="nav-container user-menu">
+            <div class="nav-header">
+                User
+            </div>
+            <div class="nav-content">
+                <nav>
+                    <ul>
+                        <li>
+                            <a href="~/Login"><i class="fa fa-sign-in"></i><span>Login</span></a>
                         </li>
                     </ul>
                 </nav>

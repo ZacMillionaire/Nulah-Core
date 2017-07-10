@@ -6,6 +6,15 @@
     <!--<EnableDefaultCompileItems>false</EnableDefaultCompileItems>-->
   </PropertyGroup>
 
+  <ItemGroup>
+    <Content Include="wwwroot\fonts\fontawesome-webfont.eot" />
+    <Content Include="wwwroot\fonts\fontawesome-webfont.svg" />
+    <Content Include="wwwroot\fonts\fontawesome-webfont.ttf" />
+    <Content Include="wwwroot\fonts\fontawesome-webfont.woff" />
+    <Content Include="wwwroot\fonts\fontawesome-webfont.woff2" />
+    <Content Include="wwwroot\fonts\FontAwesome.otf" />
+  </ItemGroup>
+
   <!--<ItemGroup>
     <Content Include="wwwroot\Templates\NewRegistration.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
