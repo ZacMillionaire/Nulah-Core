@@ -59,19 +59,20 @@ namespace NulahCore.Controllers.Users {
 
         public static async Task RegisterUser(OAuthCreatingTicketContext context, IDatabase Redis, AppSetting Settings) {
             // Retrieve user info by passing an Authorization header with the value token {accesstoken};
-            var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);
-            request.Headers.Authorization = new AuthenticationHeaderValue("token", context.AccessToken);
+            try {
+                var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);
+                request.Headers.Authorization = new AuthenticationHeaderValue("token", context.AccessToken);
 
-            // Extract the user info object
-            var response = await context.Backchannel.SendAsync(request, context.HttpContext.RequestAborted);
-            response.EnsureSuccessStatusCode();
-            var user = JsonConvert.DeserializeObject<GitHubProfile>(await response.Content.ReadAsStringAsync(), new JsonSerializerSettings {
-                DefaultValueHandling = DefaultValueHandling.Ignore,
-                NullValueHandling = NullValueHandling.Ignore
-            });
-            // Add the Name Identifier claim for htmlantiforgery
-            context.Identity.AddClaims(
-                new List<Claim> {
+                // Extract the user info object
+                var response = await context.Backchannel.SendAsync(request, context.HttpContext.RequestAborted);
+                response.EnsureSuccessStatusCode();
+                var user = JsonConvert.DeserializeObject<GitHubProfile>(await response.Content.ReadAsStringAsync(), new JsonSerializerSettings {
+                    DefaultValueHandling = DefaultValueHandling.Ignore,
+                    NullValueHandling = NullValueHandling.Ignore
+                });
+                // Add the Name Identifier claim for htmlantiforgery
+                context.Identity.AddClaims(
+                    new List<Claim> {
                     new Claim(
                         ClaimTypes.NameIdentifier,
                         user.id.ToString(),
@@ -84,10 +85,13 @@ namespace NulahCore.Controllers.Users {
                         ClaimValueTypes.String,
                         context.Options.ClaimsIssuer
                     )
-                }
-            );
+                    }
+                );
 
-            UserProfile.Register(user, Redis, Settings);
+                UserProfile.Register(user, Redis, Settings);
+            } catch(Exception e) {
+                throw e;
+            }
         }
 
         /// <summary>
