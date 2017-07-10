@@ -87,6 +87,7 @@ namespace NulahCore.Filters {
             } catch(Exception e) {
                 // set status code and redirect to error page
                 Context.Response.StatusCode = 500;
+                _logger.LogCritical((int)ScreamingLogLevel.Error_Critical, JsonConvert.SerializeObject(e));
                 //Context.Response.Redirect("/Error/500");
             }
         }

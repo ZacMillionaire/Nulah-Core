@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 namespace NulahCore.Extensions.Logging {
     public enum ScreamingLogLevel {
-        Navigation = 1000
+        Navigation = 1000,
+        Error_Critical = 9100
     }
 }
