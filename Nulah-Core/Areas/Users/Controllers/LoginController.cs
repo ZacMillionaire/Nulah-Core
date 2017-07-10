@@ -19,7 +19,7 @@ namespace NulahCore.Areas.Users.Controllers {
         public async Task<IActionResult> Index(string error, string error_description) {
             if(error == null && error_description == null) {
                 await HttpContext.Authentication.ChallengeAsync("GitHub", properties: new AuthenticationProperties {
-                    RedirectUri = "/"
+                    RedirectUri = "/signin-github"
                 });
             }
             return View();
