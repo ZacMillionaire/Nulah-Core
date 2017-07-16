@@ -8,6 +8,7 @@ using NulahCore.Filters;
 using NulahCore.Controllers.Users;
 using StackExchange.Redis;
 using NulahCore.Models;
+using NulahCore.Models.User;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -26,7 +27,7 @@ namespace NulahCore.Areas.Users.Controllers {
         [HttpGet]
         [Route("~/Profile")]
         [UserFilter(Role.IsLoggedIn)]
-        public IActionResult Index() {
+        public IActionResult SelfProfile() {
             return View();
         }
 
@@ -36,6 +37,15 @@ namespace NulahCore.Areas.Users.Controllers {
             // Will be null if no data is found for the UserId
             ViewData["Profile"] = UserProfile.GetUserById(UserId, _redis, _settings);
             return View();
+        }
+
+        [HttpGet]
+        [Route("~/Profile/Refresh")]
+        public async Task RefreshProfile() {
+            PublicUser currentUser = (PublicUser)ViewData["User"];
+
+            await UserProfile.RefreshPublicUserProfile(currentUser.UserId, _settings, _redis);
+            RedirectToAction("SelfProfile");
         }
 
         /*

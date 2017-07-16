@@ -23,6 +23,7 @@ namespace NulahCore.Models.User {
         public string events_url { get; set; }
         public string received_events_url { get; set; }
         public string type { get; set; }
+        public string access_token { get; set; }
 
         /// <summary>
         /// GitHub site admin

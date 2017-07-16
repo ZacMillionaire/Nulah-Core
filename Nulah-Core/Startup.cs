@@ -23,6 +23,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using NulahCore.Models.User;
 using System.Security.Claims;
 using NulahCore.Controllers.Users;
+using Microsoft.AspNetCore.Mvc;
 
 namespace NulahCore {
     public class Startup {
@@ -56,8 +57,13 @@ namespace NulahCore {
             );
 
             // configure MVC
+            // Debug ssl fix, all you have to do is enable ssl, ctrl+f5 so it won't go into debug mode, jump into IE to install the cert
+            // the-get fucked that's fucking stupid but it works
+            // https://stackoverflow.com/questions/40965442/an-error-occurred-attempting-to-determine-the-process-id-of-dotnet-exe-which-is
             services.AddMvc(Options => {
                 Options.RespectBrowserAcceptHeader = true;
+                //Options.RequireHttpsPermanent = true;
+                //Options.Filters.Add(new RequireHttpsAttribute());
             })
             .AddMvcOptions(Options => {
                 Options.Filters.Add(new ActionFilter(redis));
@@ -68,6 +74,12 @@ namespace NulahCore {
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, IDatabase Redis) {
             app.UseDefaultFiles();
             app.UseStaticFiles();
+
+            //var options = new RewriteOptions()
+            //   .AddRedirectToHttps();
+
+            //app.UseRewriter(options);
+
 
             // configure cookies
             app.UseCookieAuthentication(new CookieAuthenticationOptions {

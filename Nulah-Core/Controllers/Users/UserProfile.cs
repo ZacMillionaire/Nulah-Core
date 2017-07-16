@@ -9,7 +9,9 @@ using NulahCore.Models.User;
 using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
@@ -19,6 +21,7 @@ namespace NulahCore.Controllers.Users {
     public class UserProfile {
 
         private const string HASH_PublicData = "PublicData";
+        private const string HASH_AccessToken = "GitHub_AccessToken";
         private const string KEY_UserProfile_Tokened = "{0}Users:{1}";
 
         /// <summary>
@@ -53,27 +56,30 @@ namespace NulahCore.Controllers.Users {
                 };
 
                 Redis.HashSet(KEY_UserProfile, "Profile", JsonConvert.SerializeObject(redisUser));
-
                 Redis.HashSet(KEY_UserProfile, HASH_PublicData, JsonConvert.SerializeObject(UserProfile.CreatePublicUserProfile(redisUser)));
-
             }
+
+            Redis.HashSet(KEY_UserProfile, HASH_AccessToken, GitHubProfile.access_token);
         }
 
         public static async Task RegisterUser(OAuthCreatingTicketContext context, IDatabase Redis, AppSetting Settings) {
             // Retrieve user info by passing an Authorization header with the value token {accesstoken};
-                var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);
-                request.Headers.Authorization = new AuthenticationHeaderValue("token", context.AccessToken);
+            var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);
+            request.Headers.Authorization = new AuthenticationHeaderValue("token", context.AccessToken);
 
-                // Extract the user info object
-                var response = await context.Backchannel.SendAsync(request, context.HttpContext.RequestAborted);
-                response.EnsureSuccessStatusCode();
-                var user = JsonConvert.DeserializeObject<GitHubProfile>(await response.Content.ReadAsStringAsync(), new JsonSerializerSettings {
-                    DefaultValueHandling = DefaultValueHandling.Ignore,
-                    NullValueHandling = NullValueHandling.Ignore
-                });
-                // Add the Name Identifier claim for htmlantiforgery
-                context.Identity.AddClaims(
-                    new List<Claim> {
+            // Extract the user info object
+            var response = await context.Backchannel.SendAsync(request, context.HttpContext.RequestAborted);
+            response.EnsureSuccessStatusCode();
+            var a = await response.Content.ReadAsStringAsync();
+            var user = JsonConvert.DeserializeObject<GitHubProfile>(await response.Content.ReadAsStringAsync(), new JsonSerializerSettings {
+                DefaultValueHandling = DefaultValueHandling.Ignore,
+                NullValueHandling = NullValueHandling.Ignore
+            });
+
+            user.access_token = context.AccessToken;
+            // Add the Name Identifier claim for htmlantiforgery
+            context.Identity.AddClaims(
+                new List<Claim> {
                     new Claim(
                         ClaimTypes.NameIdentifier,
                         user.id.ToString(),
@@ -86,10 +92,10 @@ namespace NulahCore.Controllers.Users {
                         ClaimValueTypes.String,
                         context.Options.ClaimsIssuer
                     )
-                    }
-                );
+                }
+            );
 
-                UserProfile.Register(user, Redis, Settings);
+            UserProfile.Register(user, Redis, Settings);
         }
 
         /// <summary>
@@ -105,7 +111,8 @@ namespace NulahCore.Controllers.Users {
                 GitHubUrl = GitHubUserData.GitProfile,
                 Hireable = GitHubUserData.Hireable,
                 LastUpdated = DateTime.UtcNow,
-                MemberSince = DateTime.UtcNow
+                MemberSince = DateTime.UtcNow,
+                UserId = GitHubUserData.ID
             };
 
             UserData.IsLoggedIn = true;
@@ -114,10 +121,6 @@ namespace NulahCore.Controllers.Users {
                 Role.CanComment
             };
 
-            if(GitHubUserData.PublicRepoCount > 1 || GitHubUserData.PublicGistCount > 1) {
-                UserRoles.AddRange(new[] { Role.CanAuthor });
-            }
-
             //UserProfile.GetAdditionalRoles(UserId,Redis,Settings) // Pull further set roles such as Admin roles from another location
 
             UserData.Roles = UserRoles.ToArray();
@@ -125,12 +128,43 @@ namespace NulahCore.Controllers.Users {
             return UserData;
         }
 
+
         /// <summary>
         /// Refreshes the PublicData hash in redis by making a request to the users GitHub UserProfile Api
         /// </summary>
         /// <param name="GitHubProfileUri"></param>
         /// <returns></returns>
-        internal static PublicUser UpdatePublicUserProfile(string GitHubProfileUri) {
+        internal static async Task<PublicUser> RefreshPublicUserProfile(int GitHubProfileId, AppSetting Settings, IDatabase Redis) {
+
+            string KEY_UserProfile = $"{Settings.Redis.BaseKey}Users:{GitHubProfileId}";
+
+            var accessToken = Redis.HashGet(KEY_UserProfile, HASH_AccessToken);
+
+
+            /*
+               var request = WebRequest.Create("http://github.com/login/oauth/authorize?client_id=");
+               using(var response = await request.GetResponseAsync()) {
+                   StreamReader reader = new StreamReader(response.GetResponseStream());
+                   var content1 = reader.ReadToEnd();
+               }
+
+               */
+            //var hand = new HttpMessageHandler();
+            var http = new HttpClient() {
+                
+            };
+            // Extract the user info object
+            var request = WebRequest.Create($"https://api.github.com/users/ZacMillionaire?access_token={accessToken}");
+            request.Method = "Get";
+            //request.Headers["Authorization"] = $"token {accessToken}";
+            var res = request.GetResponseAsync();
+            var a = res.Result;
+            /*
+            var user = JsonConvert.DeserializeObject<GitHubProfile>(res.Result, new JsonSerializerSettings {
+                DefaultValueHandling = DefaultValueHandling.Ignore,
+                NullValueHandling = NullValueHandling.Ignore
+            });
+            */
             throw new NotImplementedException();
         }
 
