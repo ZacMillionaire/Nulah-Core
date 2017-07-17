@@ -57,13 +57,13 @@ namespace NulahCore {
             );
 
             // configure MVC
+
             // Debug ssl fix, all you have to do is enable ssl, ctrl+f5 so it won't go into debug mode, jump into IE to install the cert
             // the-get fucked that's fucking stupid but it works
             // https://stackoverflow.com/questions/40965442/an-error-occurred-attempting-to-determine-the-process-id-of-dotnet-exe-which-is
+            // not doing ssl anyway, but for reference when I change my mind later
             services.AddMvc(Options => {
                 Options.RespectBrowserAcceptHeader = true;
-                //Options.RequireHttpsPermanent = true;
-                //Options.Filters.Add(new RequireHttpsAttribute());
             })
             .AddMvcOptions(Options => {
                 Options.Filters.Add(new ActionFilter(redis));
