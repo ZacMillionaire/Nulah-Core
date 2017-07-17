@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using NulahCore.Controllers.GitHub;
 using NulahCore.Controllers.Users.Models;
 using NulahCore.Extensions.Logging;
 using NulahCore.Filters;
@@ -21,6 +22,7 @@ namespace NulahCore.Controllers.Users {
     public class UserProfile {
 
         private const string HASH_PublicData = "PublicData";
+        private const string HASH_ProfileData = "Profile";
         private const string HASH_AccessToken = "GitHub_AccessToken";
         private const string KEY_UserProfile_Tokened = "{0}Users:{1}";
 
@@ -55,11 +57,47 @@ namespace NulahCore.Controllers.Users {
                     Gravatar = GitHubProfile.avatar_url
                 };
 
-                Redis.HashSet(KEY_UserProfile, "Profile", JsonConvert.SerializeObject(redisUser));
+                Redis.HashSet(KEY_UserProfile, HASH_ProfileData, JsonConvert.SerializeObject(redisUser));
                 Redis.HashSet(KEY_UserProfile, HASH_PublicData, JsonConvert.SerializeObject(UserProfile.CreatePublicUserProfile(redisUser)));
             }
 
             Redis.HashSet(KEY_UserProfile, HASH_AccessToken, GitHubProfile.access_token);
+        }
+
+        /// <summary>
+        /// Updating existing data from a retrieved GitHubProfile.
+        /// Creates a hash with Profile data from GitHub, and PublicData which is their PublicUser object for views.
+        /// Does nothing if the user profile does not exist.
+        /// </summary>
+        /// <param name="GitHubProfile"></param>
+        /// <returns></returns>
+        internal static void Update(GitHubProfile GitHubProfile, IDatabase Redis, AppSetting Settings) {
+
+            string KEY_UserProfile = $"{Settings.Redis.BaseKey}Users:{GitHubProfile.id}";
+
+            if(Redis.HashExists(KEY_UserProfile, "Profile")) {
+                var redisUser = new User {
+                    GitProfile = GitHubProfile.html_url,
+                    Hireable = GitHubProfile.hireable,
+                    ID = GitHubProfile.id,
+                    DisplayName = GitHubProfile.login, // fallback if name below is null
+                    PublicName = GitHubProfile.name,
+                    url_repo = GitHubProfile.repos_url, // public only
+                    url_gists = GitHubProfile.gists_url.Split('{')[0], // public only, drop the curly brace param
+                    GitHubUserSince = GitHubProfile.created_at,
+                    GitHubBio = GitHubProfile.bio,
+                    GitHubUserApi = GitHubProfile.url, // use this to refresh stats
+                    PublicRepoCount = GitHubProfile.public_repos,
+                    PublicGistCount = GitHubProfile.public_gists,
+                    Blog = GitHubProfile.blog,
+                    Company = GitHubProfile.company,
+                    EmailAddress = GitHubProfile.email,
+                    Gravatar = GitHubProfile.avatar_url
+                };
+
+                Redis.HashSet(KEY_UserProfile, HASH_ProfileData, JsonConvert.SerializeObject(redisUser));
+                Redis.HashSet(KEY_UserProfile, HASH_PublicData, JsonConvert.SerializeObject(UserProfile.CreatePublicUserProfile(redisUser)));
+            }
         }
 
         public static async Task RegisterUser(OAuthCreatingTicketContext context, IDatabase Redis, AppSetting Settings) {
@@ -134,38 +172,15 @@ namespace NulahCore.Controllers.Users {
         /// </summary>
         /// <param name="GitHubProfileUri"></param>
         /// <returns></returns>
-        internal static async Task<PublicUser> RefreshPublicUserProfile(int GitHubProfileId, AppSetting Settings, IDatabase Redis) {
+        internal static async Task RefreshPublicUserProfile(int GitHubProfileId, AppSetting Settings, IDatabase Redis) {
 
             string KEY_UserProfile = $"{Settings.Redis.BaseKey}Users:{GitHubProfileId}";
 
             var accessToken = Redis.HashGet(KEY_UserProfile, HASH_AccessToken);
 
+            var UpdatedProfile = await GitHubApi.Get<GitHubProfile>("https://api.github.com/users/ZacMillionaire", accessToken);
 
-            /*
-               var request = WebRequest.Create("http://github.com/login/oauth/authorize?client_id=");
-               using(var response = await request.GetResponseAsync()) {
-                   StreamReader reader = new StreamReader(response.GetResponseStream());
-                   var content1 = reader.ReadToEnd();
-               }
-
-               */
-            //var hand = new HttpMessageHandler();
-            var http = new HttpClient() {
-                
-            };
-            // Extract the user info object
-            var request = WebRequest.Create($"https://api.github.com/users/ZacMillionaire?access_token={accessToken}");
-            request.Method = "Get";
-            //request.Headers["Authorization"] = $"token {accessToken}";
-            var res = request.GetResponseAsync();
-            var a = res.Result;
-            /*
-            var user = JsonConvert.DeserializeObject<GitHubProfile>(res.Result, new JsonSerializerSettings {
-                DefaultValueHandling = DefaultValueHandling.Ignore,
-                NullValueHandling = NullValueHandling.Ignore
-            });
-            */
-            throw new NotImplementedException();
+            Update(UpdatedProfile, Redis, Settings);
         }
 
         internal static PublicUser GetUserById(string UserId, IDatabase Redis, AppSetting Settings) {

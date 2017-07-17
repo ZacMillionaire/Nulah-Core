@@ -41,11 +41,11 @@ namespace NulahCore.Areas.Users.Controllers {
 
         [HttpGet]
         [Route("~/Profile/Refresh")]
-        public async Task RefreshProfile() {
+        public async Task<IActionResult> RefreshProfile() {
             PublicUser currentUser = (PublicUser)ViewData["User"];
 
             await UserProfile.RefreshPublicUserProfile(currentUser.UserId, _settings, _redis);
-            RedirectToAction("SelfProfile");
+            return RedirectToAction("SelfProfile");
         }
 
         /*
