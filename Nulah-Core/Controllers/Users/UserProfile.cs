@@ -37,7 +37,8 @@ namespace NulahCore.Controllers.Users {
 
             string KEY_UserProfile = $"{Settings.Redis.BaseKey}Users:{GitHubProfile.id}";
 
-            if(!Redis.HashExists(KEY_UserProfile, "Profile")) {
+            // if this is the first time we've seen this user, create their full profile
+            if(!Redis.HashExists(KEY_UserProfile, HASH_ProfileData)) {
                 var redisUser = new User {
                     GitProfile = GitHubProfile.html_url,
                     Hireable = GitHubProfile.hireable,
@@ -58,10 +59,49 @@ namespace NulahCore.Controllers.Users {
                 };
 
                 Redis.HashSet(KEY_UserProfile, HASH_ProfileData, JsonConvert.SerializeObject(redisUser));
-                Redis.HashSet(KEY_UserProfile, HASH_PublicData, JsonConvert.SerializeObject(UserProfile.CreatePublicUserProfile(redisUser)));
+                Redis.HashSet(KEY_UserProfile, HASH_PublicData, JsonConvert.SerializeObject(UserProfile.CreatePublicUserProfile(redisUser, Redis, Settings)));
+            } else {
+                // otherwise, pull their existing public data and update where needed.
+                var existingUser = JsonConvert.DeserializeObject<PublicUser>(Redis.HashGet(KEY_UserProfile, HASH_PublicData));
+
+                UserProfile.UserLogIn(existingUser, Redis, Settings);
             }
 
             Redis.HashSet(KEY_UserProfile, HASH_AccessToken, GitHubProfile.access_token);
+        }
+
+        internal static void UserLogOut(PublicUser LoggingOutUser, IDatabase Redis, AppSetting Settings) {
+            if(LoggingOutUser == null) {
+                throw new NullReferenceException($"Received null PublicUser data for logout.");
+            }
+
+            string KEY_UserProfile = $"{Settings.Redis.BaseKey}Users:{LoggingOutUser.UserId}";
+
+            // confirm that the public data exists, then update the logged out
+            if(Redis.HashExists(KEY_UserProfile, HASH_PublicData)) {
+                LoggingOutUser.IsLoggedIn = false;
+                LoggingOutUser.Roles = new Role[] { Role.IsLoggedOut }; // Clear the role list and set it to Role.IsLoggedOut
+                Redis.HashSet(KEY_UserProfile, HASH_PublicData, JsonConvert.SerializeObject(LoggingOutUser));
+                Redis.HashDelete(KEY_UserProfile, HASH_AccessToken); // remove the access token. Not a big deal if it remains, but eh
+            } else {
+                throw new NullReferenceException($"Missing Profile data for {LoggingOutUser.UserId}.");
+            }
+        }
+
+        /// <summary>
+        ///     <para>
+        /// Sets a user profile to logged in, and refreshes roles.
+        ///     </para>
+        /// </summary>
+        /// <param name="LoggingInUser"></param>
+        /// <param name="Redis"></param>
+        /// <param name="Settings"></param>
+        internal static void UserLogIn(PublicUser LoggingInUser, IDatabase Redis, AppSetting Settings) {
+            string KEY_UserProfile = $"{Settings.Redis.BaseKey}Users:{LoggingInUser.UserId}";
+
+            SetLoggedInStateAndRoles(LoggingInUser, Redis, Settings);
+
+            Redis.HashSet(KEY_UserProfile, HASH_PublicData, JsonConvert.SerializeObject(LoggingInUser));
         }
 
         /// <summary>
@@ -75,7 +115,7 @@ namespace NulahCore.Controllers.Users {
 
             string KEY_UserProfile = $"{Settings.Redis.BaseKey}Users:{GitHubProfile.id}";
 
-            if(Redis.HashExists(KEY_UserProfile, "Profile")) {
+            if(Redis.HashExists(KEY_UserProfile, HASH_ProfileData)) {
                 var redisUser = new User {
                     GitProfile = GitHubProfile.html_url,
                     Hireable = GitHubProfile.hireable,
@@ -96,7 +136,7 @@ namespace NulahCore.Controllers.Users {
                 };
 
                 Redis.HashSet(KEY_UserProfile, HASH_ProfileData, JsonConvert.SerializeObject(redisUser));
-                Redis.HashSet(KEY_UserProfile, HASH_PublicData, JsonConvert.SerializeObject(UserProfile.CreatePublicUserProfile(redisUser)));
+                Redis.HashSet(KEY_UserProfile, HASH_PublicData, JsonConvert.SerializeObject(UserProfile.CreatePublicUserProfile(redisUser, Redis, Settings)));
             }
         }
 
@@ -137,33 +177,84 @@ namespace NulahCore.Controllers.Users {
         }
 
         /// <summary>
-        /// Creates a PublicUser for views
+        /// Creates a PublicUser for views. Called on new user registration, user data update.
         /// </summary>
         /// <param name="ProfileData"></param>
         /// <returns></returns>
-        internal static PublicUser CreatePublicUserProfile(User GitHubUserData) {
-            PublicUser UserData = new PublicUser() {
-                Blog = ( GitHubUserData.Blog == string.Empty ) ? null : GitHubUserData.Blog,
-                Company = ( GitHubUserData.Company == string.Empty ) ? null : GitHubUserData.Company,
-                DisplayName = GitHubUserData.PublicName == null ? GitHubUserData.DisplayName : GitHubUserData.PublicName,
-                GitHubUrl = GitHubUserData.GitProfile,
-                Hireable = GitHubUserData.Hireable,
-                LastUpdated = DateTime.UtcNow,
-                MemberSince = DateTime.UtcNow,
-                UserId = GitHubUserData.ID
-            };
+        internal static PublicUser CreatePublicUserProfile(User GitHubUserData, IDatabase Redis, AppSetting Settings) {
 
-            UserData.IsLoggedIn = true;
+            string KEY_UserProfile = $"{Settings.Redis.BaseKey}Users:{GitHubUserData.ID}";
+
+            PublicUser UserData;
+
+            // if the user already has a public data profile, update everything but the member since. New user data otherwise
+            if(Redis.HashExists(KEY_UserProfile, HASH_PublicData)) {
+                UserData = JsonConvert.DeserializeObject<PublicUser>(Redis.HashGet(KEY_UserProfile, "Profile"));
+                UserData.Blog = ( GitHubUserData.Blog == string.Empty ) ? null : GitHubUserData.Blog;
+                UserData.Company = ( GitHubUserData.Company == string.Empty ) ? null : GitHubUserData.Company;
+                UserData.DisplayName = GitHubUserData.PublicName ?? GitHubUserData.DisplayName;
+                UserData.GitHubUrl = GitHubUserData.GitProfile;
+                UserData.Hireable = GitHubUserData.Hireable;
+                UserData.LastUpdated = DateTime.UtcNow;
+            } else {
+                UserData = new PublicUser() {
+                    Blog = ( GitHubUserData.Blog == string.Empty ) ? null : GitHubUserData.Blog,
+                    Company = ( GitHubUserData.Company == string.Empty ) ? null : GitHubUserData.Company,
+                    DisplayName = GitHubUserData.PublicName ?? GitHubUserData.DisplayName,
+                    GitHubUrl = GitHubUserData.GitProfile,
+                    Hireable = GitHubUserData.Hireable,
+                    LastUpdated = DateTime.UtcNow,
+                    MemberSince = DateTime.UtcNow,
+                    UserId = GitHubUserData.ID
+                };
+            }
+
+            // Set the new/updated userdata to logged in, and create/refresh roles
+            SetLoggedInStateAndRoles(UserData, Redis, Settings);
+
+            return UserData;
+        }
+
+        /// <summary>
+        ///     <para>
+        /// Sets a user to logged in, and populates their roles
+        ///     </para>
+        /// </summary>
+        /// <param name="User"></param>
+        /// <param name="Redis"></param>
+        /// <param name="Settings"></param>
+        /// <returns></returns>
+        internal static PublicUser SetLoggedInStateAndRoles(PublicUser User, IDatabase Redis, AppSetting Settings) {
+            User.IsLoggedIn = true;
             List<Role> UserRoles = new List<Role> {
                 Role.IsLoggedIn,
                 Role.CanComment
             };
 
-            //UserProfile.GetAdditionalRoles(UserId,Redis,Settings) // Pull further set roles such as Admin roles from another location
+            // Pull further set roles such as Admin roles from another location
+            UserRoles.AddRange(GetAdditionalRoles(User, Redis, Settings));
 
-            UserData.Roles = UserRoles.ToArray();
+            User.Roles = UserRoles.ToArray();
+            return User;
+        }
 
-            return UserData;
+        /// <summary>
+        ///     <para>
+        /// Generates additional roles based on various criteria.
+        ///     </para>
+        /// </summary>
+        /// <param name="UserData"></param>
+        /// <param name="Redis"></param>
+        /// <param name="Settings"></param>
+        /// <returns></returns>
+        private static List<Role> GetAdditionalRoles(PublicUser UserData, IDatabase Redis, AppSetting Settings) {
+            List<Role> AdditionalRoles = new List<Role>();
+            // add global administrator permission
+            if(Settings.GlobalAdministrators.Contains(UserData.UserId)) {
+                AdditionalRoles.Add(Role.GlobalAdministrator);
+            }
+
+            return AdditionalRoles;
         }
 
 

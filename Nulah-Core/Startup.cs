@@ -44,7 +44,14 @@ namespace NulahCore {
         public void ConfigureServices(IServiceCollection services) {
             // configure app settings
             _config.GetSection("ConnectionStrings").Bind(ApplicationSettings);
-            ApplicationSettings.Api_Mailgun = _config["Api:Mailgun"];
+
+            // Get global administrators list and cast to int[]
+            ApplicationSettings.GlobalAdministrators = _config.GetSection("SiteSettings:GlobalAdministrators")
+                .AsEnumerable()
+                .Where(x => x.Value != null)
+                .Select(x => int.Parse(x.Value))
+                .ToArray();
+
             ApplicationSettings.LogLevel = (LogLevel)Enum.Parse(typeof(LogLevel), _config["Logging:Level"]);
 
             // inject redis and app settings

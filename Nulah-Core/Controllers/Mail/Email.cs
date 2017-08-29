@@ -23,7 +23,7 @@ namespace NulahCore.Controllers {
         */
         public Email(MailSettings Details, AppSetting Settings) {
             _details = Details;
-            _apiKey = Settings.Api_Mailgun;
+            //_apiKey = Settings.Api_Mailgun;
         }
 
         public async void Send(IDatabase Redis, AppSetting Settings) {

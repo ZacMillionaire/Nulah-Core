@@ -13,7 +13,8 @@ namespace NulahCore.Filters {
         IsLoggedIn,
         IsLoggedOut,
         CanComment,
-        CanAuthor
+        CanAuthor,
+        GlobalAdministrator
     }
 
     /// <summary>

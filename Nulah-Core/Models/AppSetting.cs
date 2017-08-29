@@ -8,8 +8,8 @@ namespace NulahCore.Models {
     public class AppSetting {
         public RedisConnection Redis { get; set; }
         public string ContentRoot { get; set; }
-        public string Api_Mailgun { get; set; }
         public LogLevel LogLevel { get; set; }
+        public int[] GlobalAdministrators { get; set; }
     }
 
     public class RedisConnection {
