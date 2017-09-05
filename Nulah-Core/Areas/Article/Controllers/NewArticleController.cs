@@ -13,8 +13,15 @@ namespace NulahCore.Areas.Blog.Controllers {
     public class NewArticleController : Controller {
         [HttpGet]
         [Route("~/Article/New")]
-        [UserFilter(new[] { Role.IsLoggedIn, Role.CanAuthor },"~/Article/Error")]
+        [UserFilter(new[] { Role.IsLoggedIn, Role.CanAuthor }, "~/Article/New/Error", true)]
         public IActionResult NewArticle() {
+            ViewData["Sidebar"] = "compressed";
+            return View();
+        }
+
+        [HttpGet]
+        [Route("~/Article/New/Error")]
+        public IActionResult NewArticleError() {
             return View();
         }
     }

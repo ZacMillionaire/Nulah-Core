@@ -4,67 +4,102 @@
     background-color: #000;
     flex-direction: column;
     padding: 10px;
+    flex: 0 0 auto;
+    //min-width: 200px;
+    transition: all 0.3s ease-in-out;
 
-    .nav-container {
-        flex: 0 1 auto;
-        color: #fff;
+    &.compressed {
+        /*
+        min-width: 50px;
+        width: 50px;
+        position: relative;
 
-        .nav-header {
-            font-size: 1.2em;
-            font-weight: bold;
-            margin-bottom: 5px;
-            height: 1.3em;
-            //text-align: center;
+        &:before {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            height: 100%;
+            width: 150%;
+            background: linear-gradient(to left, hsla(0,0%,0%,1),hsla(0,0%,0%,0));
+            display: block;
+            content: "";
+            z-index: $LAYER_SUPER;
+            opacity: 1;
+            transition: opacity 0.3s ease-in-out;
+            pointer-events: none;
         }
 
-        &.user-menu {
-            margin-top: auto;
-            margin-bottom: 20px;
-        }
+        &:hover {
+            &:before{
+                opacity: 0;
+            }
+            width: inherit;
+            min-width: 200px;
+        }*/
+    }
+}
+
+.nav-container {
+    flex: 0 1 auto;
+    color: #fff;
+    //min-width: 180px; // minus 20px for padding
+    .nav-header {
+        font-size: 1.2em;
+        font-weight: bold;
+        margin-bottom: 5px;
+        height: 1.3em;
+        //text-align: center;
     }
 
-    nav {
-        height: auto;
+    &.user-menu {
+        margin-top: auto;
+        margin-bottom: 20px;
+    }
+}
 
-        ul {
-            list-style: none;
+
+nav {
+    height: auto;
+
+    ul {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        /*margin-left: 10px;*/
+        li {
             display: flex;
-            flex-direction: column;
-            /*margin-left: 10px;*/
-            li {
-                display: flex;
-                border-bottom: 1px solid hsl(0,0%,15%);
-                padding: 0 10px;
+            border-bottom: 1px solid hsl(0,0%,15%);
+            padding: 0 10px;
 
-                &:hover {
-                    background-color: hsl(0,0%,100%);
-                    color: hsl(0,0%,0%);
-                    font-weight: bold;
+            &:hover {
+                background-color: hsl(0,0%,100%);
+                color: hsl(0,0%,0%);
+                //font-weight: bold;
+            }
+
+            a {
+                font-size: 1.1em;
+                text-decoration: none;
+                color: inherit;
+                width: 100%;
+                height: 100%;
+                display: block;
+                position: relative;
+                padding: 8px 0;
+
+                span {
+                    font-size: inherit;
                 }
 
-                a {
-                    font-size: 1.1em;
-                    text-decoration: none;
-                    color: inherit;
-                    width: 100%;
-                    height: 100%;
-                    display: block;
-                    position: relative;
-                    padding: 8px 0;
+                i {
+                    width: 20px;
+                    margin-right: 10px;
+                }
 
+                &:hover {
                     span {
-                        font-size: inherit;
-                    }
-
-                    i {
-                        width: 20px;
-                        margin-right: 10px;
-                    }
-
-                    &:hover {
-                        span {
-                            text-decoration: underline;
-                        }
+                        text-decoration: underline;
                     }
                 }
             }

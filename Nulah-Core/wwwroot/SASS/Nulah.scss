@@ -1,14 +1,21 @@
 ﻿$site-background: hsl(0,0%,100%);
 $module-spacing: 7px;
 
+$LAYER_SUPER : 9000;
+
 @import "Partials/_reset.scss";
 @import "Partials/_layout.scss";
 @import "Partials/_sidebar.scss";
+
+@import "Partials/_forms.scss";
+
+
+@import "Partials/_articleManagement.scss";
+
 /*
 @import "Partials/_modules.scss";
 @import "Partials/_tables.scss";
 @import "Partials/_forms.scss";
 
 @import "Partials/_frontpage.scss";
-@import "Partials/_articleManagement.scss";
 */

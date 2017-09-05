@@ -1,11 +1,36 @@
 ﻿@using NulahCore.Models.Article;
 @model PublicArticle
-<div class="page-container">
+<div class="article-container">
+    <div class="article-navigation article-navigation-top">
+        @*<div class="article-navigation--item">
+                <a href="~/">&laquo; Back</a>
+            </div>*@
+        <div class="nav-container">
+            <div class="nav-header">
+                New Article
+            </div>
+            <div class="nav-content">
+                <nav>
+                    <ul>
+                        <li>
+                            <a href="#"><i class="fa fa-image"></i><span>Upload Image</span></a>
+                        </li>
+                        <li>
+                            <a href="#"><i class="fa fa-save"></i><span>Save Draft</span></a>
+                        </li>
+                        <li>
+                            <a href="#"><i class="fa fa-book"></i><span>Publish</span></a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
     <div class="new-article-content">
         <div class="module-column">
             <div class="module">
                 <div class="module-content">
-                    &laquo; Back
                 </div>
             </div>
             <div class="module">
