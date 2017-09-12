@@ -9,6 +9,9 @@
 	* So for now the profile stuff is hard coded to GitHub specific.
 	* Other thing: Need to make a base profile data for common user details across providers, and then a provider specific dictionary that can be referenced in views and so on.
 		* The provider specific dictionary is the easy part of this at least.
+	* Would like to divine the profile class to use from the provider name.
+		* not sure on overhead for this.
+
 # Design Notes
 The idea of this is to create a quick and easy blog platform that relates to an OAuth provider, allowing likeminded people to login with the same details, and keeps the content related.
 
