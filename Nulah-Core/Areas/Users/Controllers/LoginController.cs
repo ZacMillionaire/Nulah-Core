@@ -25,12 +25,29 @@ namespace NulahCore.Areas.Users.Controllers {
             _settings = Settings;
         }
 
+        /*
+        // TODO: Reimplement this for selecting a specific provider for multiple login
+        /// <summary>
+        /// Login provider selection page
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         [Route("~/Login")]
         [UserFilter(Role.IsLoggedOut)]
-        public async Task<IActionResult> Index(string error, string error_description) {
+        public IActionResult Index() {
+            return View();
+        }
+        */
+
+        [HttpGet]
+        [Route("~/Login")]
+        [UserFilter(Role.IsLoggedOut)]
+        // TODO: Reimplement this for multiple login
+        //[Route("~/Login/{Provider}")]
+        //public async Task<IActionResult> LoginWithProvider(string Provider) {
+        public async Task<IActionResult> LoginWithProvider(string error, string error_description) {
             if(error == null && error_description == null) {
-                var challenge = HttpContext.Authentication.ChallengeAsync("GitHub", properties: new AuthenticationProperties {
+                var challenge = HttpContext.Authentication.ChallengeAsync(_settings.Provider, properties: new AuthenticationProperties {
                     RedirectUri = "/"
                 });
                 await challenge;

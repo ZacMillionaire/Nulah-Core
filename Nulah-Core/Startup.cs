@@ -37,6 +37,7 @@ namespace NulahCore {
                 .AddJsonFile($"appsettings.dev.json", optional: true, reloadOnChange: false);
             _config = builder.Build();
             ApplicationSettings.ContentRoot = env.ContentRootPath;
+            ApplicationSettings.Provider = _config["Provider"];
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -77,6 +78,18 @@ namespace NulahCore {
             });
         }
 
+        public class Provider {
+            public string ClientId { get; set; }
+            public string ClientSecret { get; set; }
+            public string[] Scope { get; set; }
+            public bool SaveTokens { get; set; }
+            public string AuthenticationScheme { get; set; }
+            public string AuthorizationEndpoint { get; set; }
+            public string TokenEndpoint { get; set; }
+            public string UserInformationEndpoint { get; set; }
+            public string CallbackPath { get; set; }
+        }
+
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, IDatabase Redis) {
             app.UseDefaultFiles();
@@ -99,17 +112,19 @@ namespace NulahCore {
                 SlidingExpiration = true
             });
 
-            app.UseOAuthAuthentication(new OAuthOptions {
-                ClientId = _config["Api:GitHub:ClientId"],
-                ClientSecret = _config["Api:GitHub:ClientSecret"],
-                Scope = { "public_repo" },
-                SaveTokens = true,
-                AuthenticationScheme = "GitHub",
-                AuthorizationEndpoint = "https://github.com/login/oauth/authorize",
-                TokenEndpoint = "https://github.com/login/oauth/access_token",
-                UserInformationEndpoint = "https://api.github.com/user?access_token=",
-                CallbackPath = new PathString("/signin-github"),
+            var loginProvider = _config.GetSection("OAuthProviders").Get<Provider>();
 
+            //foreach(var provider in loginProviders) { // future skeleton for providing multiple provider logins
+
+            var authOptions = new OAuthOptions {
+                ClientId = loginProvider.ClientId,
+                ClientSecret = loginProvider.ClientSecret,
+                SaveTokens = loginProvider.SaveTokens,
+                AuthenticationScheme = loginProvider.AuthenticationScheme,
+                AuthorizationEndpoint = loginProvider.AuthorizationEndpoint,
+                TokenEndpoint = loginProvider.TokenEndpoint,
+                UserInformationEndpoint = loginProvider.UserInformationEndpoint,
+                CallbackPath = new PathString(loginProvider.CallbackPath),
                 // This looks fucking ugly though, need to find out how to move it to a class
                 Events = new OAuthEvents {
                     // https://auth0.com/blog/authenticating-a-user-with-linkedin-in-aspnet-core/
@@ -120,7 +135,16 @@ namespace NulahCore {
                         await UserProfile.RegisterUser(context, Redis, ApplicationSettings);
                     }
                 }
-            });
+            };
+
+
+            // can't just pass the scope array in because...reasons?
+            foreach(var scope in loginProvider.Scope) {
+                authOptions.Scope.Add(scope);
+            }
+
+            app.UseOAuthAuthentication(authOptions);
+            //} // end provider loop for later
 
             /*
             // commented out until I start doing image uploads

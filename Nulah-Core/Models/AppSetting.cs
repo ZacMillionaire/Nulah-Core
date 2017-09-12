@@ -10,6 +10,7 @@ namespace NulahCore.Models {
         public string ContentRoot { get; set; }
         public LogLevel LogLevel { get; set; }
         public int[] GlobalAdministrators { get; set; }
+        public string Provider { get; set; }
     }
 
     public class RedisConnection {
