@@ -22,4 +22,8 @@ namespace NulahCore.Models.User {
             Roles = new Role[] { Role.IsLoggedOut };
         }
     }
+
+    public class PublicUser<T> {
+
+    }
 }

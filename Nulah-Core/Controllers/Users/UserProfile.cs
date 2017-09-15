@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using NulahCore.Controllers.GitHub;
+using NulahCore.Controllers.Providers.GitHub;
 using NulahCore.Controllers.Users.Models;
 using NulahCore.Extensions.Logging;
 using NulahCore.Filters;
@@ -21,21 +22,19 @@ using System.Threading.Tasks;
 namespace NulahCore.Controllers.Users {
     public class UserProfile {
 
-        private const string HASH_PublicData = "PublicData";
-        private const string HASH_ProfileData = "Profile";
-        private const string HASH_AccessToken = "GitHub_AccessToken";
-        private const string KEY_UserProfile_Tokened = "{0}Users:{1}";
 
         /// <summary>
-        /// First time registration from a retrieved GitHubProfile.
-        /// Does nothing if the profile has already been added.
-        /// Creates a hash with Profile data from GitHub, and PublicData which is their PublicUser object for views.
+        /// Registers a given PubicUser
         /// </summary>
-        /// <param name="GitHubProfile"></param>
-        /// <returns></returns>
-        internal static void Register(GitHubProfile GitHubProfile, IDatabase Redis, AppSetting Settings) {
-
+        /// <typeparam name="T">The OAuth provider public model from the provider</typeparam>
+        /// <param name="OAuthPublicProfile"></param>
+        /// <param name="Redis"></param>
+        /// <param name="Settings"></param>
+        internal static void Register<T>(T OAuthPublicProfile, IDatabase Redis, AppSetting Settings) {
             string KEY_UserProfile = $"{Settings.Redis.BaseKey}Users:{GitHubProfile.id}";
+            Redis.HashSet(KEY_UserProfile, HASH_PublicData, JsonConvert.SerializeObject(UserProfile.CreatePublicUserProfile(redisUser, Redis, Settings)));
+
+            /*
 
             // if this is the first time we've seen this user, create their full profile
             if(!Redis.HashExists(KEY_UserProfile, HASH_ProfileData)) {
@@ -68,6 +67,7 @@ namespace NulahCore.Controllers.Users {
             }
 
             Redis.HashSet(KEY_UserProfile, HASH_AccessToken, GitHubProfile.access_token);
+            */
         }
 
         internal static void UserLogOut(PublicUser LoggingOutUser, IDatabase Redis, AppSetting Settings) {
@@ -148,32 +148,43 @@ namespace NulahCore.Controllers.Users {
             // Extract the user info object
             var response = await context.Backchannel.SendAsync(request, context.HttpContext.RequestAborted);
             response.EnsureSuccessStatusCode();
-            var a = await response.Content.ReadAsStringAsync();
-            var user = JsonConvert.DeserializeObject<GitHubProfile>(await response.Content.ReadAsStringAsync(), new JsonSerializerSettings {
-                DefaultValueHandling = DefaultValueHandling.Ignore,
-                NullValueHandling = NullValueHandling.Ignore
-            });
+            var oauthres = await response.Content.ReadAsStringAsync();
 
-            user.access_token = context.AccessToken;
-            // Add the Name Identifier claim for htmlantiforgery
-            context.Identity.AddClaims(
-                new List<Claim> {
-                    new Claim(
-                        ClaimTypes.NameIdentifier,
-                        user.id.ToString(),
-                        ClaimValueTypes.String,
-                        context.Options.ClaimsIssuer
-                    ),
-                    new Claim(
-                        "RedisKey",
-                        $"{Settings.Redis.BaseKey}Users:{user.id}",
-                        ClaimValueTypes.String,
-                        context.Options.ClaimsIssuer
-                    )
-                }
-            );
+            if(Settings.Provider == "GitHub") {
 
-            UserProfile.Register(user, Redis, Settings);
+                var GitHubProvider = new GitHubLoginProvider();
+
+                var user = JsonConvert.DeserializeObject<OAuthProfile>(await response.Content.ReadAsStringAsync(), new JsonSerializerSettings {
+                    DefaultValueHandling = DefaultValueHandling.Ignore,
+                    NullValueHandling = NullValueHandling.Ignore
+                });
+
+                user.access_token = context.AccessToken;
+
+                var providerUser = GitHubProvider.CreatePublicUser(user, Redis, Settings);
+
+                // Add the Name Identifier claim for htmlantiforgery
+                context.Identity.AddClaims(
+                    new List<Claim> {
+                        new Claim(
+                            ClaimTypes.NameIdentifier,
+                            user.id.ToString(),
+                            ClaimValueTypes.String,
+                            context.Options.ClaimsIssuer
+                        ),
+                        new Claim(
+                            "RedisKey",
+                            $"{Settings.Redis.BaseKey}Users:{user.id}",
+                            ClaimValueTypes.String,
+                            context.Options.ClaimsIssuer
+                        )
+                    }
+                );
+
+
+
+                UserProfile.Register<PublicUser<GitHubProfile>>(providerUser, Redis, Settings);
+            }
         }
 
         /// <summary>
