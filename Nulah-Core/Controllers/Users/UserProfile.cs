@@ -23,129 +23,128 @@ namespace NulahCore.Controllers.Users {
     public class UserProfile {
 
 
-        /// <summary>
-        /// Registers a given PubicUser
-        /// </summary>
-        /// <typeparam name="T">The OAuth provider public model from the provider</typeparam>
-        /// <param name="OAuthPublicProfile"></param>
-        /// <param name="Redis"></param>
-        /// <param name="Settings"></param>
-        internal static void Register<T>(T OAuthPublicProfile, IDatabase Redis, AppSetting Settings) {
-            string KEY_UserProfile = $"{Settings.Redis.BaseKey}Users:{GitHubProfile.id}";
+        /*
+    /// <summary>
+    /// Registers a given PubicUser
+    /// </summary>
+    /// <typeparam name="T">The OAuth provider public model from the provider</typeparam>
+    /// <param name="OAuthPublicProfile"></param>
+    /// <param name="Redis"></param>
+    /// <param name="Settings"></param>
+    internal static void Register<T>(T OAuthPublicProfile, IDatabase Redis, AppSetting Settings) {
+        string KEY_UserProfile = $"{Settings.Redis.BaseKey}Users:{GitHubProfile.id}";
+        Redis.HashSet(KEY_UserProfile, HASH_PublicData, JsonConvert.SerializeObject(UserProfile.CreatePublicUserProfile(redisUser, Redis, Settings)));
+
+
+        // if this is the first time we've seen this user, create their full profile
+        if(!Redis.HashExists(KEY_UserProfile, HASH_ProfileData)) {
+            var redisUser = new User {
+                GitProfile = GitHubProfile.html_url,
+                Hireable = GitHubProfile.hireable,
+                ID = GitHubProfile.id,
+                DisplayName = GitHubProfile.login, // fallback if name below is null
+                PublicName = GitHubProfile.name,
+                url_repo = GitHubProfile.repos_url, // public only
+                url_gists = GitHubProfile.gists_url.Split('{')[0], // public only, drop the curly brace param
+                GitHubUserSince = GitHubProfile.created_at,
+                GitHubBio = GitHubProfile.bio,
+                GitHubUserApi = GitHubProfile.url, // use this to refresh stats
+                PublicRepoCount = GitHubProfile.public_repos,
+                PublicGistCount = GitHubProfile.public_gists,
+                Blog = GitHubProfile.blog,
+                Company = GitHubProfile.company,
+                EmailAddress = GitHubProfile.email,
+                Gravatar = GitHubProfile.avatar_url
+            };
+
+            Redis.HashSet(KEY_UserProfile, HASH_ProfileData, JsonConvert.SerializeObject(redisUser));
             Redis.HashSet(KEY_UserProfile, HASH_PublicData, JsonConvert.SerializeObject(UserProfile.CreatePublicUserProfile(redisUser, Redis, Settings)));
+        } else {
+            // otherwise, pull their existing public data and update where needed.
+            var existingUser = JsonConvert.DeserializeObject<PublicUser>(Redis.HashGet(KEY_UserProfile, HASH_PublicData));
 
-            /*
-
-            // if this is the first time we've seen this user, create their full profile
-            if(!Redis.HashExists(KEY_UserProfile, HASH_ProfileData)) {
-                var redisUser = new User {
-                    GitProfile = GitHubProfile.html_url,
-                    Hireable = GitHubProfile.hireable,
-                    ID = GitHubProfile.id,
-                    DisplayName = GitHubProfile.login, // fallback if name below is null
-                    PublicName = GitHubProfile.name,
-                    url_repo = GitHubProfile.repos_url, // public only
-                    url_gists = GitHubProfile.gists_url.Split('{')[0], // public only, drop the curly brace param
-                    GitHubUserSince = GitHubProfile.created_at,
-                    GitHubBio = GitHubProfile.bio,
-                    GitHubUserApi = GitHubProfile.url, // use this to refresh stats
-                    PublicRepoCount = GitHubProfile.public_repos,
-                    PublicGistCount = GitHubProfile.public_gists,
-                    Blog = GitHubProfile.blog,
-                    Company = GitHubProfile.company,
-                    EmailAddress = GitHubProfile.email,
-                    Gravatar = GitHubProfile.avatar_url
-                };
-
-                Redis.HashSet(KEY_UserProfile, HASH_ProfileData, JsonConvert.SerializeObject(redisUser));
-                Redis.HashSet(KEY_UserProfile, HASH_PublicData, JsonConvert.SerializeObject(UserProfile.CreatePublicUserProfile(redisUser, Redis, Settings)));
-            } else {
-                // otherwise, pull their existing public data and update where needed.
-                var existingUser = JsonConvert.DeserializeObject<PublicUser>(Redis.HashGet(KEY_UserProfile, HASH_PublicData));
-
-                UserProfile.UserLogIn(existingUser, Redis, Settings);
-            }
-
-            Redis.HashSet(KEY_UserProfile, HASH_AccessToken, GitHubProfile.access_token);
-            */
+            UserProfile.UserLogIn(existingUser, Redis, Settings);
         }
 
-        internal static void UserLogOut(PublicUser LoggingOutUser, IDatabase Redis, AppSetting Settings) {
-            if(LoggingOutUser == null) {
-                throw new NullReferenceException($"Received null PublicUser data for logout.");
-            }
-
-            string KEY_UserProfile = $"{Settings.Redis.BaseKey}Users:{LoggingOutUser.UserId}";
-
-            // confirm that the public data exists, then update the logged out
-            if(Redis.HashExists(KEY_UserProfile, HASH_PublicData)) {
-                LoggingOutUser.IsLoggedIn = false;
-                LoggingOutUser.Roles = new Role[] { Role.IsLoggedOut }; // Clear the role list and set it to Role.IsLoggedOut
-                Redis.HashSet(KEY_UserProfile, HASH_PublicData, JsonConvert.SerializeObject(LoggingOutUser));
-                Redis.HashDelete(KEY_UserProfile, HASH_AccessToken); // remove the access token. Not a big deal if it remains, but eh
-            } else {
-                throw new NullReferenceException($"Missing Profile data for {LoggingOutUser.UserId}.");
-            }
+        Redis.HashSet(KEY_UserProfile, HASH_AccessToken, GitHubProfile.access_token);
+    }
+    internal static void UserLogOut(PublicUser LoggingOutUser, IDatabase Redis, AppSetting Settings) {
+        if(LoggingOutUser == null) {
+            throw new NullReferenceException($"Received null PublicUser data for logout.");
         }
 
-        /// <summary>
-        ///     <para>
-        /// Sets a user profile to logged in, and refreshes roles.
-        ///     </para>
-        /// </summary>
-        /// <param name="LoggingInUser"></param>
-        /// <param name="Redis"></param>
-        /// <param name="Settings"></param>
-        internal static void UserLogIn(PublicUser LoggingInUser, IDatabase Redis, AppSetting Settings) {
-            string KEY_UserProfile = $"{Settings.Redis.BaseKey}Users:{LoggingInUser.UserId}";
+        string KEY_UserProfile = $"{Settings.Redis.BaseKey}Users:{LoggingOutUser.UserId}";
 
-            SetLoggedInStateAndRoles(LoggingInUser, Redis, Settings);
-
-            Redis.HashSet(KEY_UserProfile, HASH_PublicData, JsonConvert.SerializeObject(LoggingInUser));
+        // confirm that the public data exists, then update the logged out
+        if(Redis.HashExists(KEY_UserProfile, HASH_PublicData)) {
+            LoggingOutUser.IsLoggedIn = false;
+            LoggingOutUser.Roles = new Role[] { Role.IsLoggedOut }; // Clear the role list and set it to Role.IsLoggedOut
+            Redis.HashSet(KEY_UserProfile, HASH_PublicData, JsonConvert.SerializeObject(LoggingOutUser));
+            Redis.HashDelete(KEY_UserProfile, HASH_AccessToken); // remove the access token. Not a big deal if it remains, but eh
+        } else {
+            throw new NullReferenceException($"Missing Profile data for {LoggingOutUser.UserId}.");
         }
+    }
 
-        /// <summary>
-        /// Updating existing data from a retrieved GitHubProfile.
-        /// Creates a hash with Profile data from GitHub, and PublicData which is their PublicUser object for views.
-        /// Does nothing if the user profile does not exist.
-        /// </summary>
-        /// <param name="GitHubProfile"></param>
-        /// <returns></returns>
-        internal static void Update(GitHubProfile GitHubProfile, IDatabase Redis, AppSetting Settings) {
+    /// <summary>
+    ///     <para>
+    /// Sets a user profile to logged in, and refreshes roles.
+    ///     </para>
+    /// </summary>
+    /// <param name="LoggingInUser"></param>
+    /// <param name="Redis"></param>
+    /// <param name="Settings"></param>
+    internal static void UserLogIn(PublicUser LoggingInUser, IDatabase Redis, AppSetting Settings) {
+        string KEY_UserProfile = $"{Settings.Redis.BaseKey}Users:{LoggingInUser.UserId}";
 
-            string KEY_UserProfile = $"{Settings.Redis.BaseKey}Users:{GitHubProfile.id}";
+        SetLoggedInStateAndRoles(LoggingInUser, Redis, Settings);
 
-            if(Redis.HashExists(KEY_UserProfile, HASH_ProfileData)) {
-                var redisUser = new User {
-                    GitProfile = GitHubProfile.html_url,
-                    Hireable = GitHubProfile.hireable,
-                    ID = GitHubProfile.id,
-                    DisplayName = GitHubProfile.login, // fallback if name below is null
-                    PublicName = GitHubProfile.name,
-                    url_repo = GitHubProfile.repos_url, // public only
-                    url_gists = GitHubProfile.gists_url.Split('{')[0], // public only, drop the curly brace param
-                    GitHubUserSince = GitHubProfile.created_at,
-                    GitHubBio = GitHubProfile.bio,
-                    GitHubUserApi = GitHubProfile.url, // use this to refresh stats
-                    PublicRepoCount = GitHubProfile.public_repos,
-                    PublicGistCount = GitHubProfile.public_gists,
-                    Blog = GitHubProfile.blog,
-                    Company = GitHubProfile.company,
-                    EmailAddress = GitHubProfile.email,
-                    Gravatar = GitHubProfile.avatar_url
-                };
+        Redis.HashSet(KEY_UserProfile, HASH_PublicData, JsonConvert.SerializeObject(LoggingInUser));
+    }
 
-                Redis.HashSet(KEY_UserProfile, HASH_ProfileData, JsonConvert.SerializeObject(redisUser));
-                Redis.HashSet(KEY_UserProfile, HASH_PublicData, JsonConvert.SerializeObject(UserProfile.CreatePublicUserProfile(redisUser, Redis, Settings)));
-            }
+    /// <summary>
+    /// Updating existing data from a retrieved GitHubProfile.
+    /// Creates a hash with Profile data from GitHub, and PublicData which is their PublicUser object for views.
+    /// Does nothing if the user profile does not exist.
+    /// </summary>
+    /// <param name="GitHubProfile"></param>
+    /// <returns></returns>
+    internal static void Update(GitHubProfile GitHubProfile, IDatabase Redis, AppSetting Settings) {
+
+        string KEY_UserProfile = $"{Settings.Redis.BaseKey}Users:{GitHubProfile.id}";
+
+        if(Redis.HashExists(KEY_UserProfile, HASH_ProfileData)) {
+            var redisUser = new User {
+                GitProfile = GitHubProfile.html_url,
+                Hireable = GitHubProfile.hireable,
+                ID = GitHubProfile.id,
+                DisplayName = GitHubProfile.login, // fallback if name below is null
+                PublicName = GitHubProfile.name,
+                url_repo = GitHubProfile.repos_url, // public only
+                url_gists = GitHubProfile.gists_url.Split('{')[0], // public only, drop the curly brace param
+                GitHubUserSince = GitHubProfile.created_at,
+                GitHubBio = GitHubProfile.bio,
+                GitHubUserApi = GitHubProfile.url, // use this to refresh stats
+                PublicRepoCount = GitHubProfile.public_repos,
+                PublicGistCount = GitHubProfile.public_gists,
+                Blog = GitHubProfile.blog,
+                Company = GitHubProfile.company,
+                EmailAddress = GitHubProfile.email,
+                Gravatar = GitHubProfile.avatar_url
+            };
+
+            Redis.HashSet(KEY_UserProfile, HASH_ProfileData, JsonConvert.SerializeObject(redisUser));
+            Redis.HashSet(KEY_UserProfile, HASH_PublicData, JsonConvert.SerializeObject(UserProfile.CreatePublicUserProfile(redisUser, Redis, Settings)));
         }
+    }
+    */
 
-        public static async Task RegisterUser(OAuthCreatingTicketContext context, IDatabase Redis, AppSetting Settings) {
+        internal static async Task RegisterUser(OAuthCreatingTicketContext context, IDatabase Redis, AppSetting Settings) {
             // Retrieve user info by passing an Authorization header with the value token {accesstoken};
             var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);
             request.Headers.Authorization = new AuthenticationHeaderValue("token", context.AccessToken);
 
-            // Extract the user info object
+            // Extract the user info object from the OAuth response
             var response = await context.Backchannel.SendAsync(request, context.HttpContext.RequestAborted);
             response.EnsureSuccessStatusCode();
             var oauthres = await response.Content.ReadAsStringAsync();
@@ -154,39 +153,66 @@ namespace NulahCore.Controllers.Users {
 
                 var GitHubProvider = new GitHubLoginProvider();
 
-                var user = JsonConvert.DeserializeObject<OAuthProfile>(await response.Content.ReadAsStringAsync(), new JsonSerializerSettings {
-                    DefaultValueHandling = DefaultValueHandling.Ignore,
-                    NullValueHandling = NullValueHandling.Ignore
-                });
+                // fetch the OAuth profile from the provider
+                var user = await GitHubProvider.GetOAuthProfile(response, context);
+                // Create the public user from it
+                var providerUser = GitHubProvider.CreatePublicUser(user);
 
-                user.access_token = context.AccessToken;
+                // Register the profile
+                var RegisteredUser = GitHubProvider.RegisterUser(providerUser, Redis, Settings);
 
-                var providerUser = GitHubProvider.CreatePublicUser(user, Redis, Settings);
+                // screaming, need to go back to a dictionary<string,string> for provider details otherwise I can't
+                // return a generic object for views, without first doing reflection to figure out what type to use from
+                // appsettings.json. Just typing that out was terrible, let alone actually doing it and thinking it's a good idea
 
-                // Add the Name Identifier claim for htmlantiforgery
+                // Add the Name Identifier claim for htmlantiforgery tokens, and the users redis key location.
                 context.Identity.AddClaims(
                     new List<Claim> {
                         new Claim(
                             ClaimTypes.NameIdentifier,
-                            user.id.ToString(),
+                            RegisteredUser.Id.ToString(),
                             ClaimValueTypes.String,
                             context.Options.ClaimsIssuer
                         ),
                         new Claim(
                             "RedisKey",
-                            $"{Settings.Redis.BaseKey}Users:{user.id}",
+                            $"{Settings.Redis.BaseKey}Users:{RegisteredUser.Id}",
                             ClaimValueTypes.String,
                             context.Options.ClaimsIssuer
                         )
                     }
                 );
-
-
-
-                UserProfile.Register<PublicUser<GitHubProfile>>(providerUser, Redis, Settings);
             }
         }
 
+        internal static void UserLogOut(PublicUser LoggingOutUser, IDatabase Redis, AppSetting Settings) {
+            throw new NotImplementedException();
+        }
+
+
+        internal static PublicUser GetUserById(string UserId, IDatabase Redis, AppSetting Settings) {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Gets a users profile data based on their redis key from a user claims object.
+        /// </summary>
+        /// <param name="UserGitHubId"></param>
+        /// <returns></returns>
+        internal static PublicUser GetUser(string RedisKey, IDatabase Redis) {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Refreshes the PublicData hash in redis by making a request to the users GitHub UserProfile Api
+        /// </summary>
+        /// <param name="GitHubProfileUri"></param>
+        /// <returns></returns>
+        internal static User<GitHubProfile> RefreshPublicUserProfile(int GitHubProfileId, AppSetting Settings, IDatabase Redis) {
+            throw new NotImplementedException();
+        }
+
+        /*
         /// <summary>
         /// Creates a PublicUser for views. Called on new user registration, user data update.
         /// </summary>
@@ -306,7 +332,7 @@ namespace NulahCore.Controllers.Users {
                 // then we just return a default userprofile
                 return new PublicUser();
             }
-        }
+        }*/
     }
 
 }

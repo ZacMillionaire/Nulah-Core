@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace NulahCore.Controllers.Providers {
     public interface ILoginProvider<T, U> where U : IOAuthProvider {
-
+        /*
         User<T> Register(U PublicProfile, IDatabase Redis, AppSetting Settings);
 
         User<T> CreatePublicUser(U OAuthData, IDatabase Redis, AppSetting Settings);
@@ -46,6 +46,17 @@ namespace NulahCore.Controllers.Providers {
         /// <param name="Redis"></param>
         /// <param name="Settings"></param>
         /// <returns></returns>
-        //PublicUser<T> Update(T ProviderProfile, IDatabase Redis, AppSetting Settings);
+        //PublicUser<T> Update(T ProviderProfile, IDatabase Redis, AppSetting Settings);*/
+
+        /// <summary>
+        ///     <para>
+        /// Returns a User<GitHubProfile>, based on their given OAuth provider details
+        ///     </para>
+        /// </summary>
+        /// <param name="OAuthData"></param>
+        /// <param name="Redis"></param>
+        /// <param name="Settings"></param>
+        /// <returns></returns>
+        User<T> CreatePublicUser(U OAuthData);
     }
 }

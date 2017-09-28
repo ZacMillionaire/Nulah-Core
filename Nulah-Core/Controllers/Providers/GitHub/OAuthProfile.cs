@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace NulahCore.Controllers.Providers.GitHub {
     /// <summary>
     /// Deserialization result from OAuth request
     /// </summary>
-    public class OAuthProfile : IOAuthProvider {
+    public class GitHubOAuthProfile : IOAuthProvider {
 #pragma warning disable IDE1006 // Naming Styles
         public string login { get; set; }
         public int id { get; set; }
@@ -53,7 +54,7 @@ namespace NulahCore.Controllers.Providers.GitHub {
 #pragma warning restore IDE1006 // Naming Styles
     }
 
-    public class GitHubProfile {
+    public class GitHubProfile : IProviderProfile {
         public string GitProfile { get; set; }
         public bool Hireable { get; set; }
         public int ID { get; set; }
