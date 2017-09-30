@@ -26,7 +26,7 @@ namespace NulahCore.Areas.Users.Controllers {
 
         [HttpGet]
         [Route("~/Profile")]
-        [UserFilter(Role.IsLoggedIn)]
+        //[UserFilter(Role.IsLoggedIn)]
         public IActionResult SelfProfile() {
             return View();
         }

@@ -2,7 +2,7 @@
 @{
     PublicUser ViewingProfile = (PublicUser)ViewData["Profile"];
     PublicUser OwnProfile = (PublicUser)ViewData["Profile"];
-    bool IsOwnProfile = ViewingProfile.UserId == OwnProfile.UserId;
+    bool IsOwnProfile = OwnProfile.IsLoggedIn && ViewingProfile.UserId == OwnProfile.UserId;
 }
 <div class="container">
     <div class="container-header">

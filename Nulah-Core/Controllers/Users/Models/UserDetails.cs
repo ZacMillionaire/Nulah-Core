@@ -36,6 +36,6 @@ namespace NulahCore.Controllers.Users.Models {
         /// TimeSpan from TimeZoneInfo.FindSystemTimeZoneById(TimezoneId).BaseUtcOffset, where TimezoneId is from TimeZoneInfo.GetSystemTimeZones()[n].Id
         ///     </para>
         /// </summary>
-        public TimeSpan TimezoneId { get; set; }
+        public TimeSpan TimezoneAdjustment { get; set; }
     }
 }

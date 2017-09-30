@@ -64,7 +64,7 @@ namespace NulahCore.Areas.Users.Controllers {
             if(a.IsCompleted) {
                 PublicUser CurrentUserInstance = (PublicUser)ViewData["User"];
 
-                UserProfile.UserLogOut(CurrentUserInstance, _redis, _settings);
+                UserProfile.Logout(CurrentUserInstance, _redis, _settings);
             }
 
             // Redirect the user to the home page after signing out

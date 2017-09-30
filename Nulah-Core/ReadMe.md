@@ -1,6 +1,4 @@
-﻿# Will not build currently
-
-# Major TODO
+﻿# Major TODO
 * Fix OAuth to use https correctly - think I've got this sorted
 	* This'll probably involve fixing kestrel to correctly use https - kestrel is http only, but nginx sits in front of it for my set up. This isn't good or ideal, but I'm just a bit to time poor to figure it out fully.
 		* ~Which is its own barrel of fun~

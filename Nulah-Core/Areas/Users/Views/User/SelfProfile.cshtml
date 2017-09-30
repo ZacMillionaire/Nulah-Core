@@ -1,6 +1,20 @@
-﻿<div class="container">
-    <div class="container-header">
-        Your Profile <a href="/Profile/Refresh">Refresh</a>
-    </div>
-    @Html.Partial("Shared/Fragments/UserProfile_Fragment", ViewData["User"])
+﻿@using NulahCore.Models.User;
+@{
+    PublicUser SelfProfile = ViewData["User"] as PublicUser;
+}
+
+<div class="container">
+    @if(SelfProfile.IsLoggedIn) {
+        <div class="container-header">
+            Your Profile <a href="/Profile/Refresh">Refresh</a>
+        </div>
+        @Html.Partial("Shared/Fragments/UserProfile_Fragment", SelfProfile)
+    } else {
+        <div class="container-header">
+            You aren't logged in.
+        </div>
+        <div class="profile">
+            You aren't logged in. <a href="~/Login">Click here to Login with GitHub.</a>
+        </div>
+    }
 </div>
