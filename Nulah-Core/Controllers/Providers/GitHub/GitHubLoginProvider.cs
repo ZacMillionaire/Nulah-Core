@@ -11,8 +11,9 @@ using Microsoft.AspNetCore.Authentication.OAuth;
 using System.Net.Http;
 using NulahCore.Filters;
 using NulahCore.Controllers.GitHub;
+using NulahCore.Controllers.Providers.GitHub;
 
-namespace NulahCore.Controllers.Providers.GitHub {
+namespace NulahCore.Controllers.Providers {
     public class GitHubLoginProvider : ILoginProvider<GitHubProfile, GitHubOAuthProfile> {
 
         private const string HASH_ProfileData = "Profile";

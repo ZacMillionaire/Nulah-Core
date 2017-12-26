@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using NulahCore.Controllers.GitHub;
-using NulahCore.Controllers.Providers.GitHub;
+using NulahCore.Controllers.Providers;
 using NulahCore.Controllers.Users.Models;
 using NulahCore.Extensions.Logging;
 using NulahCore.Filters;
@@ -34,10 +34,10 @@ namespace NulahCore.Controllers.Users {
         /// <param name="Redis"></param>
         /// <param name="Settings"></param>
         /// <returns></returns>
-        internal static async Task RegisterUser(OAuthCreatingTicketContext context, IDatabase Redis, AppSetting Settings) {
+        internal static async Task RegisterUser(OAuthCreatingTicketContext context, Startup.Provider LoginProvider /* change this later */, IDatabase Redis, AppSetting Settings) {
             // Retrieve user info by passing an Authorization header with the value token {accesstoken};
             var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);
-            request.Headers.Authorization = new AuthenticationHeaderValue("token", context.AccessToken);
+            request.Headers.Authorization = new AuthenticationHeaderValue(LoginProvider.AuthorizationHeader, context.AccessToken);
 
             // Extract the user info object from the OAuth response
             var response = await context.Backchannel.SendAsync(request, context.HttpContext.RequestAborted);
@@ -73,6 +73,10 @@ namespace NulahCore.Controllers.Users {
                         )
                     }
                 );
+            } else if(Settings.Provider == "Discord") {
+                throw new NotImplementedException("Discord not really worth it");
+                var DiscordProvider = new DiscordLoginProvider(Redis, Settings);
+                var a = await DiscordProvider.GetOAuthProfile(response, context);
             }
         }
 

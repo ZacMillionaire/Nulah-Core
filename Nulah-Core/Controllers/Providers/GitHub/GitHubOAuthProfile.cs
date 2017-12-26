@@ -54,7 +54,11 @@ namespace NulahCore.Controllers.Providers.GitHub {
 #pragma warning restore IDE1006 // Naming Styles
     }
 
+    /// <summary>
+    /// Public data from first OAuth request
+    /// </summary>
     public class GitHubProfile : IProviderProfile {
+#pragma warning disable IDE1006 // Naming Styles
         public string GitProfile { get; set; }
         public bool Hireable { get; set; }
         public int ID { get; set; }
@@ -78,5 +82,6 @@ namespace NulahCore.Controllers.Providers.GitHub {
         public string Company { get; set; }
         public string Blog { get; set; }
         public string Gravatar { get; set; }
+#pragma warning restore IDE1006 // Naming Styles
     }
 }

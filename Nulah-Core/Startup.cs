@@ -83,6 +83,14 @@ namespace NulahCore {
             public string ClientSecret { get; set; }
             public string[] Scope { get; set; }
             public bool SaveTokens { get; set; }
+            /// <summary>
+            ///     <para>
+            /// Used for OAuth Authorization header, GitHub uses token [...], Discord uses Bearer [...]
+            ///     </para><para>
+            /// This is case sensitive as well. eg token != Token
+            ///     </para>
+            /// </summary>
+            public string AuthorizationHeader { get; set; }
             public string AuthenticationScheme { get; set; }
             public string AuthorizationEndpoint { get; set; }
             public string TokenEndpoint { get; set; }
@@ -132,7 +140,7 @@ namespace NulahCore {
                     // created an auth ticket. We need to manually call the UserInformationEndpoint to retrieve the user's information,
                     // parse the resulting JSON to extract the relevant information, and add the correct claims.
                     OnCreatingTicket = async context => {
-                        await UserProfile.RegisterUser(context, Redis, ApplicationSettings);
+                        await UserProfile.RegisterUser(context, loginProvider, Redis, ApplicationSettings);
                     }
                 }
             };
