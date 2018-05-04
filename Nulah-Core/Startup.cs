@@ -20,15 +20,15 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using NulahCore.Models.User;
+using Nulah.Users.Models;
 using System.Security.Claims;
 using NulahCore.Controllers.Users;
 using Microsoft.AspNetCore.Mvc;
 
 namespace NulahCore {
     public class Startup {
-        private IConfigurationRoot _config;
-        private AppSetting ApplicationSettings = new AppSetting();
+        private IConfigurationRoot _config { get; set; }
+        private AppSetting _ApplicationSettings = new AppSetting();
 
         public Startup(IHostingEnvironment env) {
             var builder = new ConfigurationBuilder()
@@ -36,33 +36,81 @@ namespace NulahCore {
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
                 .AddJsonFile($"appsettings.dev.json", optional: true, reloadOnChange: false);
             _config = builder.Build();
-            ApplicationSettings.ContentRoot = env.ContentRootPath;
-            ApplicationSettings.Provider = _config["Provider"];
+            _config.Bind(_ApplicationSettings);
+            _ApplicationSettings.ContentRoot = env.ContentRootPath;
+            _ApplicationSettings.Redis = _config.GetSection("ConnectionStrings:Redis").Get<RedisConnection>();
+            //_ApplicationSettings.Provider = _config["Provider"];
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services) {
             // configure app settings
-            _config.GetSection("ConnectionStrings").Bind(ApplicationSettings);
-
             // Get global administrators list and cast to int[]
-            ApplicationSettings.GlobalAdministrators = _config.GetSection("SiteSettings:GlobalAdministrators")
+            _ApplicationSettings.GlobalAdministrators = _config.GetSection("SiteSettings:GlobalAdministrators")
                 .AsEnumerable()
                 .Where(x => x.Value != null)
                 .Select(x => int.Parse(x.Value))
                 .ToArray();
 
-            ApplicationSettings.LogLevel = (LogLevel)Enum.Parse(typeof(LogLevel), _config["Logging:Level"]);
+            _ApplicationSettings.LogLevel = (LogLevel)Enum.Parse(typeof(LogLevel), _config["Logging:Level"]);
 
             // inject redis and app settings
-            IDatabase redis = RedisStore.RedisCache;
-            services.AddScoped(_ => redis);
-            services.AddScoped(_ => ApplicationSettings);
+            IDatabase Redis = RedisStore.RedisCache;
+            services.AddScoped(_ => Redis);
+            services.AddScoped(_ => _ApplicationSettings);
 
-            services.AddAuthentication(
-                options => options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme
-            );
+            var OAuthService = services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(options => options = new CookieAuthenticationOptions {
+                    LoginPath = new PathString("/Login"),
+                    LogoutPath = new PathString("/Logout"),
+                    AccessDeniedPath = "/",
+                    ExpireTimeSpan = new TimeSpan(30, 0, 0, 0),
+                    SlidingExpiration = true
+                });
+
+            var loginProviders = _ApplicationSettings.OAuthProviders;
+
+            foreach(var loginProvider in loginProviders) {
+                OAuthService.AddOAuth(loginProvider.AuthenticationScheme, options => {
+                    options.ClientId = loginProvider.ClientId;
+                    options.ClientSecret = loginProvider.ClientSecret;
+                    options.SaveTokens = loginProvider.SaveTokens;
+                    options.AuthorizationEndpoint = loginProvider.AuthorizationEndpoint;
+                    options.TokenEndpoint = loginProvider.TokenEndpoint;
+                    options.UserInformationEndpoint = loginProvider.UserInformationEndpoint;
+                    options.CallbackPath = new PathString(loginProvider.CallbackPath);
+
+                    foreach(var scope in loginProvider.Scope) {
+                        options.Scope.Add(scope);
+                    }
+
+                    // This looks fucking ugly though, need to find out how to move it to a class
+                    options.Events = new OAuthEvents {
+                        // https://auth0.com/blog/authenticating-a-user-with-linkedin-in-aspnet-core/
+                        // The OnCreatingTicket event is called after the user has been authenticated and the OAuth middleware has
+                        // created an auth ticket. We need to manually call the UserInformationEndpoint to retrieve the user's information,
+                        // parse the resulting JSON to extract the relevant information, and add the correct claims.
+                        OnCreatingTicket = async context => {
+                            await UserOAuth.RegisterUser(context, loginProvider, Redis, _ApplicationSettings);
+                        },/*
+                        // Here until I figure out what magic kestrel needs to actually work with https.
+                        // Apparently it's not a thing you should do (which is why I have it proxied behind nginx): https://github.com/aspnet/KestrelHttpServer/issues/1108
+                        // but it's still fucking annoying having my redirect_uri's going to http, because https causes a weird handshake bug because asdfklsflkashfdaslkf
+                        // I'm a "professional", btw. There's no way you'd actually think that looking at my code though.
+                        OnRedirectToAuthorizationEndpoint = context => {
+                            var uri = HttpUtility.ParseQueryString(context.RedirectUri);
+                            uri["redirect_uri"] = uri["redirect_uri"].Replace("http","https");
+                            context.Response.Redirect(uri.ToString());
+                            return Task.FromResult(0);
+                        },*/
+                        OnRemoteFailure = async context => {
+                            await UserOAuth.OAuthRemoteFailure(context, loginProvider, Redis, _ApplicationSettings);
+                            context.HttpContext.Response.StatusCode = 500;
+                        }
+                    };
+                });
+            }
 
             // configure MVC
 
@@ -74,7 +122,7 @@ namespace NulahCore {
                 Options.RespectBrowserAcceptHeader = true;
             })
             .AddMvcOptions(Options => {
-                Options.Filters.Add(new ActionFilter(redis));
+                Options.Filters.Add(new ActionFilter(Redis));
             });
         }
 
@@ -100,59 +148,11 @@ namespace NulahCore {
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, IDatabase Redis) {
+            loggerFactory.AddConsole();
+            loggerFactory.AddProvider(new ScreamingLoggerProvider(Redis, _ApplicationSettings));
+
             app.UseDefaultFiles();
             app.UseStaticFiles();
-
-            //var options = new RewriteOptions()
-            //   .AddRedirectToHttps();
-
-            //app.UseRewriter(options);
-
-
-            // configure cookies
-            app.UseCookieAuthentication(new CookieAuthenticationOptions {
-                AutomaticAuthenticate = true,
-                AutomaticChallenge = true,
-                LoginPath = new PathString("/Login"),
-                LogoutPath = new PathString("/Logout"),
-                AccessDeniedPath = "/",
-                ExpireTimeSpan = new TimeSpan(30, 0, 0, 0),
-                SlidingExpiration = true
-            });
-
-            var loginProvider = _config.GetSection("OAuthProviders").Get<Provider>();
-
-            //foreach(var provider in loginProviders) { // future skeleton for providing multiple provider logins
-
-            var authOptions = new OAuthOptions {
-                ClientId = loginProvider.ClientId,
-                ClientSecret = loginProvider.ClientSecret,
-                SaveTokens = loginProvider.SaveTokens,
-                AuthenticationScheme = loginProvider.AuthenticationScheme,
-                AuthorizationEndpoint = loginProvider.AuthorizationEndpoint,
-                TokenEndpoint = loginProvider.TokenEndpoint,
-                UserInformationEndpoint = loginProvider.UserInformationEndpoint,
-                CallbackPath = new PathString(loginProvider.CallbackPath),
-                // This looks fucking ugly though, need to find out how to move it to a class
-                Events = new OAuthEvents {
-                    // https://auth0.com/blog/authenticating-a-user-with-linkedin-in-aspnet-core/
-                    // The OnCreatingTicket event is called after the user has been authenticated and the OAuth middleware has
-                    // created an auth ticket. We need to manually call the UserInformationEndpoint to retrieve the user's information,
-                    // parse the resulting JSON to extract the relevant information, and add the correct claims.
-                    OnCreatingTicket = async context => {
-                        await UserProfile.RegisterUser(context, loginProvider, Redis, ApplicationSettings);
-                    }
-                }
-            };
-
-
-            // can't just pass the scope array in because...reasons?
-            foreach(var scope in loginProvider.Scope) {
-                authOptions.Scope.Add(scope);
-            }
-
-            app.UseOAuthAuthentication(authOptions);
-            //} // end provider loop for later
 
             /*
             // commented out until I start doing image uploads
@@ -168,8 +168,11 @@ namespace NulahCore {
             // See: https://andrewlock.net/re-execute-the-middleware-pipeline-with-the-statuscodepages-middleware-to-create-custom-error-pages/
             app.UseStatusCodePagesWithReExecute("/Error/{0}");
             app.UseScreamingExceptions();
-            loggerFactory.AddConsole();
-            loggerFactory.AddProvider(new ScreamingLoggerProvider(Redis, ApplicationSettings));
+
+
+
+
+            app.UseAuthentication();
 
             if(env.IsDevelopment()) {
                 app.UseDeveloperExceptionPage();
@@ -178,13 +181,6 @@ namespace NulahCore {
 
             // Best to be last to make sure all the other magic can happen first before we attempt to return a view.
             app.UseMvc();
-
-            /*
-            app.Run(async (context) =>
-            {
-                await context.Response.WriteAsync("Hello World!");
-            });
-            */
         }
     }
 }

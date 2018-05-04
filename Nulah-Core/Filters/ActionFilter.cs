@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.DependencyInjection;
 using NulahCore.Controllers.Users;
-using NulahCore.Models.User;
+using NulahCore.Models;
 using StackExchange.Redis;
 using System;
 using System.Collections.Generic;

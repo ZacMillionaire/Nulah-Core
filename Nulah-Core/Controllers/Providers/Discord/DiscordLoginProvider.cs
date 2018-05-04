@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using NulahCore.Controllers.Users.Models;
 using NulahCore.Filters;
-using NulahCore.Models.User;
+using Nulah.Users.Models;
 using System.Net.Http;
 using NulahCore.Controllers.Providers.Discord;
 using Newtonsoft.Json;

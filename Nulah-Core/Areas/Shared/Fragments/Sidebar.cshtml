@@ -1,6 +1,6 @@
-﻿@using NulahCore.Models.User;
+﻿@using Nulah.Users.Models;
 @{
-    PublicUser User = ViewData["User"] as PublicUser;
+    User User = ViewData["User"] as User;
 }
 <div class="sidebar @ViewData["Sidebar"]">
     <div class="nav-container">
@@ -20,7 +20,7 @@
             </nav>
         </div>
     </div>
-    @if(User.IsLoggedIn) {
+    @if(false) {
         <div class="nav-container user-menu">
             <div class="nav-header">
                 User
@@ -50,7 +50,7 @@
                 <nav>
                     <ul>
                         <li>
-                            <a href="~/Login"><i class="fa fa-sign-in"></i><span>Login</span></a>
+                            <a href="~/Login/GitHub"><i class="fa fa-sign-in"></i><span>Login</span></a>
                         </li>
                     </ul>
                 </nav>

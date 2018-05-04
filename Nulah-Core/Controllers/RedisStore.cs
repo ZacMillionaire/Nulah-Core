@@ -33,9 +33,11 @@ namespace NulahCore.Controllers {
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
                 .AddJsonFile($"appsettings.dev.json", optional: true, reloadOnChange: false);
             IConfigurationRoot config = builder.Build();
-
             _ApplicationSettings = new AppSetting();
-            builder.Build().GetSection("ConnectionStrings").Bind(_ApplicationSettings);
+
+            _ApplicationSettings.Redis = config.GetSection("ConnectionStrings:Redis").Get<RedisConnection>();
+
+            //builder.Build().GetSection("Redis").Bind(_ApplicationSettings.Redis);
 
             LazyConnection = new Lazy<ConnectionMultiplexer>(() => ConnectionMultiplexer.Connect(configOptions.Value));
         }

@@ -4,12 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using NulahCore.Filters;
-using Microsoft.AspNetCore.Http.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using StackExchange.Redis;
 using NulahCore.Models;
 using NulahCore.Controllers.Users;
-using NulahCore.Models.User;
+using Microsoft.AspNetCore.Authentication;
 
 // For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -40,14 +39,14 @@ namespace NulahCore.Areas.Users.Controllers {
         */
 
         [HttpGet]
-        [Route("~/Login")]
+        [Route("~/Login/{Provider}")]
         [UserFilter(Role.IsLoggedOut)]
         // TODO: Reimplement this for multiple login
         //[Route("~/Login/{Provider}")]
         //public async Task<IActionResult> LoginWithProvider(string Provider) {
-        public async Task<IActionResult> LoginWithProvider(string error, string error_description) {
+        public async Task<IActionResult> LoginWithProvider(string error, string error_description, string Provider) {
             if(error == null && error_description == null) {
-                var challenge = HttpContext.Authentication.ChallengeAsync(_settings.Provider, properties: new AuthenticationProperties {
+                var challenge = HttpContext.ChallengeAsync(Provider, properties: new AuthenticationProperties {
                     RedirectUri = "/"
                 });
                 await challenge;
@@ -59,7 +58,7 @@ namespace NulahCore.Areas.Users.Controllers {
         [UserFilter(Role.IsLoggedIn)]
         public async Task<IActionResult> Logout() {
 
-            var a = HttpContext.Authentication.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            var a = HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             await a;
             if(a.IsCompleted) {
                 PublicUser CurrentUserInstance = (PublicUser)ViewData["User"];

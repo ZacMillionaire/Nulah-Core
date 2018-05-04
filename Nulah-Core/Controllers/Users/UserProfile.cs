@@ -7,7 +7,7 @@ using NulahCore.Controllers.Users.Models;
 using NulahCore.Extensions.Logging;
 using NulahCore.Filters;
 using NulahCore.Models;
-using NulahCore.Models.User;
+using Nulah.Users.Models;
 using StackExchange.Redis;
 using System;
 using System.Collections.Generic;

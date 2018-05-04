@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authentication.OAuth;
+using Nulah.Users.Models;
 using NulahCore.Controllers.Users.Models;
 using NulahCore.Filters;
 using NulahCore.Models;
-using NulahCore.Models.User;
 using StackExchange.Redis;
 using System;
 using System.Collections.Generic;

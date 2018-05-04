@@ -3,8 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Nulah.Users.Models;
 
-namespace NulahCore.Models.User {
+namespace NulahCore.Models {
     public class PublicUser {
         public bool IsLoggedIn { get; set; }
         public Role[] Roles { get; set; }
@@ -30,7 +31,7 @@ namespace NulahCore.Models.User {
         ///     </para>
         /// </summary>
         /// <param name="UserData"></param>
-        public PublicUser(Controllers.Users.Models.User UserData) {
+        public PublicUser(User UserData) {
             DisplayName = UserData.Details.DisplayName;
             LastUpdated = UserData.Details.LastUpdatedUTC;
             MemberSince = UserData.Details.RegisteredUTC;

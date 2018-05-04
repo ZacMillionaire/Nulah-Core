@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using StackExchange.Redis;
 using Newtonsoft.Json;
-using NulahCore.Models.User;
 using NulahCore.Models;
 using NulahCore.Controllers.Users.Models;
 using Microsoft.AspNetCore.Authentication.OAuth;
@@ -12,6 +11,7 @@ using System.Net.Http;
 using NulahCore.Filters;
 using NulahCore.Controllers.GitHub;
 using NulahCore.Controllers.Providers.GitHub;
+using Nulah.Users.Models;
 
 namespace NulahCore.Controllers.Providers {
     public class GitHubLoginProvider : ILoginProvider<GitHubProfile, GitHubOAuthProfile> {
